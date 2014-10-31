@@ -9,6 +9,8 @@ Links
 * [Project charter][CharterGH] (Github)
 * [Who's doing what?][Issues] (Github issue tracker)
 
+The Bill of Materials is in the charter.
+
 Forks
 -----
 * [Master]
