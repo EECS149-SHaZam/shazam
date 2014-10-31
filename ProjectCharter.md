@@ -34,11 +34,11 @@ Total cost: ~$116
 * ~~10/21: Turn in project charter and create repo~~
 * ~~10/28: Choice of platform finalized after discussion with GSIs~~
 * ~~10/31: Order necessary parts / get from TAs~~
-* 11/11: Familiarize ourselves with parts and create relevant state models. **Dev access to Pi** (Ethernet)
-* 11/14: Hello world sensor comm (BT) and servo control (PWM via Arduino)
+* 11/11: Familiarize ourselves with parts and create relevant state models. **Dev access to mbed** (USB-serial)
+* 11/14: Hello world sensor comm (BT) and servo control (PWM)
 * 11/18: Mini project update - demonstrate **sensor comm** / **servo**
-* 11/21: Begin assembling parts and write code for models. **Interface Pi with Alamode** (Serial)
-* 12/2: **Head-tracking** code on Raspberry pi (Python?)
+* 11/21: Begin assembling parts and write code for models. **Interface mbed with Wiimote** (Serial)
+* 12/2: **Head-tracking** code
 * 12/12: **Final integration**; complete project
 * 12/16: Complete demo video, ppt, and prep for presentation
 * 12/17: **Final Presentation**
