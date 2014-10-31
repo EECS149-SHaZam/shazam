@@ -12,8 +12,9 @@ Links
 Forks
 -----
 * [Master]
-* [Chaim-Leib's fork]
+* [Chaim's fork]
 * [Dexter's fork]
+* [Ed's fork]
 
 [CharterGD]: https://docs.google.com/document/d/1TM3XV4FRgUr7pgJ4xMtLtbaBanqBlkbAV2HGrdI_T9U/edit
 [CharterGH]: ProjectCharter.md
