@@ -1,11 +1,12 @@
 EECS 149/249A Project Charter, Fall, 2014
-====================================
+=========================================
 Project Title: SHaZam the Magic Lamp
 
 Team: Chaim Halbert, Dexter Scobee, Edward Zhao
 
 Project Repo: https://github.com/EECS149-SHaZam/shazam
 
+Revised version, post-GSI meeting
 
 ## Project Goal
 The goal of this project is to design a lamp that will redirect its light to follow a user’s gaze.
@@ -16,23 +17,22 @@ The magic lamp will consist of a standard adjustable desk lamp with a microcontr
 
 
 ## Resources
-* Raspberry Pi ($40) + Alamode shield ($35) – OR – mbed ($13) + Bluetooth Module (~$10)
+* mbed (provided) + [Bluesmirf](https://www.sparkfun.com/products/10938)? Bluetooth Module (~$25)
 * 5V power supplies (2x $10)
-* WiiMote (Free)
-* Bluetooth USB dongle (Free)
-* IR LED bar ($5)
-* 2-axis gimbal for light ($46 – $65)
+* WiiMote (provided)
+* [IR LED bar](http://www.monoprice.com/Product?seq=1&format=2&p_id=5669&CAWELAID=1329451925&CAGPSPN=pla&catargetid=320013720000066114&cadevice=c&gclid=Cj0KEQjwiJiiBRDh3Z-ctPfS5MgBEiQAAlkbQimVkChWKF0BtfEzTS-pzF3BSvLTc6MKdP7llvVJQGIaArIo8P8HAQ) ($5)
+* [2-axis gimbal](http://www.dx.com/p/boscam-pan-tilt-camera-mount-gimbal-for-hd19-fpv-camera-recorder-w-servo-black-255234#.VEb5eovF-d4) for light ($46)
 * LED flashlight (~$10)
 * Mounting Hardware (~$10)
-* Desk lamp stand (~$10 / Free)
-* Cabling (~Free)
-Total cost: ~$124 – $195
+* Desk lamp stand (provided)
+* Cabling (provided)
+Total cost: ~$116
 
 
 ## Schedule
-* 10/21: Turn in project charter and create repo
-* 10/28: Choice of platform finalized after discussion with GSIs
-* 10/31: Order necessary parts / get from TAs
+* ~~10/21: Turn in project charter and create repo~~
+* ~~10/28: Choice of platform finalized after discussion with GSIs~~
+* ~~10/31: Order necessary parts / get from TAs~~
 * 11/11: Familiarize ourselves with parts and create relevant state models. **Dev access to Pi** (Ethernet)
 * 11/14: Hello world sensor comm (BT) and servo control (PWM via Arduino)
 * 11/18: Mini project update - demonstrate **sensor comm** / **servo**
@@ -46,4 +46,4 @@ Total cost: ~$124 – $195
 
 
 ## Risk and Feasibility
-There are several risk factors involved, mainly because of the different parts we plan to interface with each other. First, we have to interface the Pi with the Alamode Shield. At the same time, we have to get the Pi to interface with the Wiimote via Bluetooth. After that’s complete, we have to make sure that the Alamode shield can understand serial commands. Of course, we also have to use the Alamode shield to control the Gimbal itself. These processes are nontrivial and we anticipate a significant amount of the time will be spent on calibration and debugging.
+There are several risk factors involved, mainly because of the different parts we plan to interface with each other. We must interface the mbed uC with the Bluesmirf module. Then, we must connect that with the WiiMote. Then, we must interface the mbed with the gimbal's servos. Finally, we must process the IR camera data from the WiiMote to a heading vector. These processes are nontrivial (to us) and we anticipate a significant amount of the time will be spent on calibration and debugging.
