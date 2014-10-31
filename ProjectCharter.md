@@ -26,6 +26,7 @@ The magic lamp will consist of a standard adjustable desk lamp with a microcontr
 * Mounting Hardware (~$10)
 * Desk lamp stand (provided)
 * Cabling (provided)
+
 Total cost: ~$116
 
 
