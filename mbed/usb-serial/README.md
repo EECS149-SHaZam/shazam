@@ -12,7 +12,7 @@ I've only tried this on a Mac. First, plug in the mbed board. Then, find the dev
 ls /dev/tty.usbmodem*
 ```
 
-The `\*` is important.
+The `*` is important.
 
 Then, run screen on it:
 
