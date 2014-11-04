@@ -20,5 +20,5 @@ Then, run screen on it:
 screen DEVICE_FILE
 ```
 
-When you are done, hit `Ctrl-a`, `k`, `y` in sequence to close screen. If you don't do this and break off the serial connection, weird things can happend to your terminal window.
+When you are done, hit `Ctrl-a`, `k`, `y` in sequence to close screen. If you don't do this and break off the serial connection, weird things can happen to your terminal window.
 
