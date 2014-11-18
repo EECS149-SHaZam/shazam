@@ -3,6 +3,12 @@ bluesmirf-hello
 
 Interface the mbed uC with the Bluesmirf module.
 
+This was created to demonstrate interfacing the FRDM-KL25Z with the [Sparkfun BlueSMiRF Gold](https://www.sparkfun.com/products/12582). Unfortunately for us, I discovered that the board version I had would not interface with a WiiMote, which was my ultimate goal. There are several modes of Bluetooth operation, including serial and HID modes. The BlueSMiRF Gold works with serial, while I need HID mode to connect to the WiiMote. To get this requires a different firmware to be installed on the BlueSMiRF, which is done at the factory. This means that we cannot use the BlueSMiRF with the WiiMote.
+
+(There is another version of this board called the [BlueSMiRF HID](https://www.sparkfun.com/products/10938), which would probably serve my purpose.)
+
+However, the code might be useful for a different project.
+
 Instructions
 ------------
 ### Mac
