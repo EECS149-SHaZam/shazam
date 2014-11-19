@@ -8,6 +8,7 @@ Links
 * [Project charter][CharterGD] (Google Docs)
 * [Project charter][CharterGH] (Github)
 * [Who's doing what?][Issues] (Github issue tracker)
+* [Midterm project presentation][Mid presentation] (Google Docs)
 
 The Bill of Materials is in the charter.
 
@@ -25,3 +26,4 @@ Forks
 [Chaim's fork]: https://github.com/chaimleib/shazam
 [Dexter's fork]: https://github.com/dscobee/shazam
 [Ed's fork]: https://github.com/ezhao92/shazam
+[Mid presentation]: https://docs.google.com/presentation/d/1bXBP0U8ok1si7jA1WAHTGIQKqsV3Ag-EVwhi4uT4D_c
