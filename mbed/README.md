@@ -3,7 +3,7 @@ mbed folder
 Here are the files related to programming the FRDM-KL25Z.
 
 ## Installing the toolchain
-For the C and C++ projects, you will need to install ARM cross-compilers. Binaries are available for Linux, Mac OS X and Windows.
+For the C and C++ projects, you will need to install ARM cross-compilers. Binaries are available [here][ARM cross-compilers] for Linux, Mac OS X and Windows.
 
 Do not try to compile the toolchain from source unless you really have to. This can take hours.
 
