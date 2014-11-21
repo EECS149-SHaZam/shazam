@@ -51,6 +51,6 @@ Here are the steps I used to install the cross-compiler:
 Now you have compilers for the FRDM-KL25Z.
 
 ## Compiling
-Run `make`. Wherever you see a Makefile. If you have the right compilers, it should just work. The file you drag to the MBED disk will be the one ending in .bin.
+Run `make` wherever you see a Makefile. If you have the right compilers, it should just work. The file you drag to the MBED disk will be the one ending in .bin.
 
 [ARM cross-compilers]: https://launchpad.net/gcc-arm-embedded/
