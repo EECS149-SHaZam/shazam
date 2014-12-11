@@ -1,27 +1,26 @@
 import cwiid
 import time
+from sys import stdout
 
-class Wiimote(object):
-    def __init__(self):
-        self.wm = cwiid.Wiimote()
-        if self.wm:
-            print("wm has been set! Value is:")
-            print(str(self.wm))
-        else:
-            print("failed to create wm.")
-            return 1
+def write(s):
+    sys.stdout.write(s)
+    sys.stdout.flush()
 
-    def led_counter(self, delay=0.5):
-        for i in xrange(16):
-            self.wm.led = i
-            time.sleep(delay)
+
+def connect(tries=10):
+    print("To stop this program, press ctrl-c.")
+    print("Press 1 and 2 on the Wiimote now.")
+    print("Connecting to the Wiimote")
     
-    def rumble_pulse(self, delay=0.5):
-        for i in xrange(16):
-            if i % 3:
-                self.wm.rumble = False
-            else:
-                self.wm.rumble = True
-            time.sleep(delay)
-        self.wm.rumble = False
+    wm = None
+    for i in xrange(tries):
+        write('.')
+        try:
+            wm = cwiid.Wiimote()
+            print("Success!")
+            return wm
+        except:
+            pass
+    print("Tried %d times and failed to connect.")
+    
 
