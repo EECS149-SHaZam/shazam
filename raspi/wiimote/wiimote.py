@@ -11,7 +11,7 @@ class Wiimote(object):
             print("failed to create wm.")
             return 1
 
-    def bin_led_counter(self, delay=0.5):
+    def led_counter(self, delay=0.5):
         for i in xrange(16):
             self.wm.led = i
             time.sleep(delay)
@@ -24,10 +24,4 @@ class Wiimote(object):
                 self.wm.rumble = True
             time.sleep(delay)
         self.wm.rumble = False
-            
-if __name__ == "__main__":
-    wm = Wiimote()
-    for i in xrange(60):
-        wm.bin_led_counter()
-        wm.rumble_pulse()
-    
+

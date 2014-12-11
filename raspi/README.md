@@ -19,6 +19,14 @@ make deps
 
 inside the `raspi` directory.
 
+First link
+----------
+Press 1 and 2 on the Wiimote. Then, run 
+    
+```bash
+make bt-on rumble
+```
+
 
 [Interfacing with a Wiimote]: https://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/robot/wiimote/
 

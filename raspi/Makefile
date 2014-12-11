@@ -20,8 +20,20 @@ apt-pkgs: apt-update
 apt-update:
 	sudo apt-get update
 
+bt-on:
+	sudo hciconfig hci0 piscan
+
+rumble:
+	python wiimote/rumble.py
+
+led-counter:
+	python wiimote/led_counter.py
+
 
 .PHONY: deps \
 	apt-pkgs \
-	apt-update
+	apt-update \
+	bt-on \
+	rumble \
+	led-counter
 
