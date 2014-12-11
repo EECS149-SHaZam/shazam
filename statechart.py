@@ -47,4 +47,4 @@ def stateChart():
 calibrate()
 while True:
     stateChart()
-    time.sleep(.01) #Modify timer later
+    time.sleep(.01)

@@ -70,6 +70,7 @@ void stateChart(){
 int main(){
     perform_calibration();
     while(1){
-        start();
+        stateChart();
+        usleep(100*1000);
     }
 }
