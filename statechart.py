@@ -1,4 +1,4 @@
-
+import time
 #State Constants
 YAW_TRACK = 1
 YAW_STAY = 2
@@ -7,6 +7,7 @@ PITCH_STAY = 4
 
 pitch_state = 0
 yaw_state = 0
+threshold = 0
 
 
 #Read HID data from WiiMote. Returns a dictionary with 
@@ -20,7 +21,6 @@ def calibrate():
 #Perform state transitions and logic
 def stateChart():
     results = get_data()
-    threshold = 0
 
     #State transition logic
     if results[yawAngle] >= threshold:
@@ -47,3 +47,4 @@ def stateChart():
 calibrate()
 while True:
     stateChart()
+    time.sleep(.01) #Modify timer later
