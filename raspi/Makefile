@@ -29,11 +29,15 @@ rumble:
 led-counter:
 	python wiimote/led_counter.py
 
+clean:
+	rm -f *.pyc
+	rm -f wiimote/*.pyc
 
 .PHONY: deps \
 	apt-pkgs \
 	apt-update \
 	bt-on \
 	rumble \
-	led-counter
+	led-counter \
+	clean
 

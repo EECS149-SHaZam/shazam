@@ -1,12 +1,8 @@
 from wiimote import connect
 import time
 import cwiid
-import sys
+from utils import write 
 
-
-def write(s):
-    sys.stdout.write(s)
-    sys.stdout.flush()
 
 # Does not seem to work with the leds, despite connecting.
 # I can't stop the 4 leds from blinking together, like during
