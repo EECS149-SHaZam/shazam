@@ -13,7 +13,7 @@ APT_PKGS=bluez \
 	python-serial
 
 
-deps: apt-pkgs python-pkgs
+deps: apt-pkgs python-pkgs git-repos
 	
 apt-pkgs: apt-update
 	sudo apt-get install $(APT_PKGS)
@@ -24,6 +24,10 @@ apt-update:
 python-pkgs:
 	sudo easy_install-pypy pip
 	
+git-repos: cwiid
+
+cwiid:
+	git clone git@github.com:chaimleib/cwiid
 
 bt-on:
 	sudo hciconfig hci0 piscan
@@ -44,5 +48,7 @@ clean:
 	bt-on \
 	rumble \
 	led-counter \
-	clean
+	clean \
+	python-pkgs \
+	git-repos
 
