@@ -77,8 +77,14 @@ class MotorController(object):
     def transmit_packet(self, packet):
         #to_send = bytearray(reversed(packet))
         self.port.write(packet)
+    
+    def split_int(self, i):
+        hi = 0xff00 & i
+        hi >>= 8
+        lo = 0xff & i
+        return [lo, hi]
         
 if __name__ == "__main__":
     mc = MotorController()
-    mc.send(mc.pitchId, mc.INST_WRITE, mc.Address.P_LED_CONTROL, [1])
+    mc.send(id=mc.pitchId, inst=mc.INST_WRITE, addr=mc.Address.P_GOAL_POSITION, values=mc.split_int(mc.DOWN_PITCH))
 
