@@ -6,7 +6,8 @@ Links
 -----
 This project would not be possible without the help of web resources. We want to heartily thank and acknowledge the writers of these articles and open source projects.
 
-* Pysical computing with Raspberri Pi: [Interfacing with a Wiimote][]
+* Physical computing with Raspberri Pi: [Interfacing with a Wiimote][]
+* elinux.org: [Serial port programming][]
 
 Installation
 ------------
@@ -29,4 +30,5 @@ make bt-on rumble
 
 
 [Interfacing with a Wiimote]: https://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/robot/wiimote/
+[Serial port programming]: http://www.elinux.org/Serial_port_programming
 
