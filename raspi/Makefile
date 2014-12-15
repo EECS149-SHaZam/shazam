@@ -8,17 +8,22 @@ SHELL=bash
 
 APT_PKGS=bluez \
 	python-cwiid \
-	python-bluez
+	python-bluez \
+	python-dev \
+	python-serial
 
 
-deps: apt-pkgs
+deps: apt-pkgs python-pkgs
 	
-
 apt-pkgs: apt-update
 	sudo apt-get install $(APT_PKGS)
 
 apt-update:
 	sudo apt-get update
+
+python-pkgs:
+	sudo easy_install-pypy pip
+	
 
 bt-on:
 	sudo hciconfig hci0 piscan
