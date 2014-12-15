@@ -24,7 +24,7 @@ apt-update:
 python-pkgs:
 	sudo easy_install-pypy pip
 	
-git-repos: cwiid
+git-repos: 
 
 cwiid:
 	git clone git@github.com:chaimleib/cwiid
@@ -41,6 +41,7 @@ led-counter:
 clean:
 	rm -f *.pyc
 	rm -f wiimote/*.pyc
+	rm -rf cwiid
 
 .PHONY: deps \
 	apt-pkgs \
