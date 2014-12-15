@@ -12,6 +12,11 @@ APT_PKGS=bluez \
 	python-dev \
 	python-serial
 
+install: deps
+	(cd rs485; make install)
+
+uninstall: clean
+	(cd rs485; make uninstall)
 
 deps: apt-pkgs python-pkgs git-repos
 	
