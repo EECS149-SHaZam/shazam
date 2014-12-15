@@ -45,6 +45,9 @@ class MotorController(object):
         self.transmit_packet(packet)
         
     def build_packet(self, id=0, inst=INST_WRITE, addr=0, values=bytearray()):
+        if not isinstance(values, bytearray):
+            values = bytearray(values)
+        
         preamble = bytearray([0xff, 0xff, id])
         
         packet = bytearray([inst, addr]) + values
@@ -55,6 +58,7 @@ class MotorController(object):
         checksum = self.checksum(full_packet)
         full_packet.append(checksum)
         
+        self.print_packet(full_packet)
         return full_packet
     
     @staticmethod
@@ -62,18 +66,19 @@ class MotorController(object):
         checksum = 0
         for val in packet[2:]:
             checksum += val
+        checksum = ~checksum
         checksum &= 0xff
         return checksum
     
     def print_packet(self, packet):
-        from pprint import pprint
-        numbers = [hex(int(item)) for item in packet]
-        pprint(numbers)
+        for i, val in enumerate(packet):
+            print("%01d:  %02x (%d)" % (i, val, val))
     
     def transmit_packet(self, packet):
-        print(packet)
+        #to_send = bytearray(reversed(packet))
         self.port.write(packet)
         
 if __name__ == "__main__":
     mc = MotorController()
     mc.send(mc.pitchId, mc.INST_WRITE, mc.Address.P_LED_CONTROL, [1])
+
