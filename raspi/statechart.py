@@ -96,18 +96,28 @@ def update_userData(points):
     #print "theta3: %f theta4: %f" %(theta3*rad2deg, theta4*rad2deg)
     
     c = (l_23/l) * (math.tan(psi1)-math.tan(psi3))/(math.tan(psi2)-math.tan(psi3))
-    a = 1 - c
+    a = 1-c #1 - c
     b = math.tan(psi1) - (math.tan(psi2) * c)
 
     psi_u = math.atan2(-a, b)
-    x_u = (l * (math.cos(psi_u) + math.sin(psi_u) * (math.tan(psi1) - .5)))/(math.tan(psi1) - math.tan(psi3))
-    y_u = x_u * math.tan(psi_u)
-    z_u = (x_u + l/2 * math.sin(psi_u)) * math.tan(theta3)
+    print "psi1: %f psi2: %f psi3: %f psi_u: %f c: %f" %(psi1*rad2deg, psi2*rad2deg, psi3*rad2deg, psi_u*rad2deg, c)
 
-    z3 = z_u
-    x3 = (x_u + l/2 * math.sin(psi_u))
+    x3 = l*(math.cos(psi_u) + math.sin(psi_u)*math.tan(psi1))/(math.tan(psi1)-math.tan(psi3))
+    y3 = x3*(math.tan(psi3) * (-1))
+    z3 = x3*math.tan(theta3)
+    
+    x_u = x3 - ((l/2)*math.sin(psi_u))
+    y_u = y3 - ((l/2)*math.cos(psi_u))
+    z_u = z3
+    
+    #x_u = (l * (math.cos(psi_u) + math.sin(psi_u) * (math.tan(psi1) - .5)))/(math.tan(psi1) - math.tan(psi3))
+    #y_u = x_u * math.tan(psi_u)
+    #z_u = (x_u + l/2 * math.sin(psi_u)) * math.tan(theta3)
+
+    #z3 = z_u
+    #x3 = (x_u + l/2 * math.sin(psi_u))
     r3 = math.sqrt(x3*x3 + z3*z3)
-    #print "z3: %f x3: %f" %(z3, x3)
+    #print "z_u: %f x_u: %f y_u: %f psi_u: %f" %(z_u, x_u, y_u, psi_u*rad2deg)
     theta_prime = abs(theta4-theta3)
     h_prime = r3 * math.sin(theta_prime)
     alpha = math.pi/2 - theta3
@@ -116,9 +126,11 @@ def update_userData(points):
     if h_prime > h:
         h_prime = h
     gamma = math.acos(h_prime/h)
-    theta_u = -math.pi + alpha + beta + gamma
+    theta_u = -math.pi + alpha + beta - gamma
+    if theta_u > 0:
+        thetau = -math.pi + alpha + beta + gamma
 
-    print "theta_u: %f psi_u %f" %(theta_u*rad2deg, psi_u*rad2deg)
+    #print "theta_u: %f psi_u %f" %(theta_u*rad2deg, psi_u*rad2deg)
 
     user['x'], user['y'], user['z'] = x_u, y_u, z_u
     user['yaw'], user['pitch'] = psi_u, theta_u
