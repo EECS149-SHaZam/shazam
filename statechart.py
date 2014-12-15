@@ -25,14 +25,14 @@ user = {'x' : 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0}
 wii = {'x' : 0, 'y': 0, 'z': 1, 'roll': 0, 'pitch': 0, 'yaw': 0}
 lamp = {'x' : 1, 'y': 0, 'z': 1, 'roll': 0, 'pitch': 0, 'yaw': 0}
 
-
-#Read HID data from WiiMote
+"""
+Read HID data from WiiMote and return list points of infrared positions
+"""
 def getData():
     temp_points = [] #Unordered point data
     point1, point2, point3, point4 = 0, 0, 0, 0
     distances = {}
     #Grab relevant data from Wii and put in temp_points
-    time.sleep(0.01)    # Wait 1 hundredth of a second between Wiimote messages
     messages = wiimote.get_mesg()   # Get Wiimote messages
  
     for mesg in messages:   # Loop through Wiimote Messages
@@ -47,17 +47,35 @@ def getData():
         return None
                              
     #Calculate respective distances for all pairs of points and put in distances dictionary
-    for i in range(0, len(temp_points)):
-        for j in range(0, len(temp_points)):
-            if i != j:
-                distances[(i, j)] = compute_distance(temp_points[i], temp_points[j])
-            else:
-                distances[(i, j)] = float('inf')
-
+    distances = getDistances(temp_points)
     #Indices of min pair of points
     indexA, indexB = min(distances, key=distances.get)
-
     #Find point1 and point2 based on indexA and indexB
+    point1, point2, point3, point4 = findPoints(temp_points, indexA, indexB)
+
+    return [temp_points[point1], temp_points[point2], temp_points[point3], temp_points[point4]]
+
+"""
+Calculate all distances of points in list points and returns dictionary of form
+    {(pointA, pointB): distance}
+"""
+def getDistances(points):
+    distances = {}
+    for i in range(0, len(points)):
+        for j in range(0, len(points)):
+            if i != j:
+                distances[(i, j)] = compute_distance(points[i], points[j])
+            else:
+                distances[(i, j)] = float('inf')
+    return distances
+
+"""
+Given temp_points, and indexA and indexB, find 
+point1, point2, point3, and point4
+"""
+
+def findPoints(temp_points, indexA, indexB):
+    point1, point2, point3, point4 = 0, 0, 0, 0
     indexC = 0
     for i in range(0, len(temp_points)):
         if i != indexA and i!= indexB:
@@ -81,13 +99,14 @@ def getData():
     else:
         point3 = indexD
         point4 = indexC
+    return point1, point2, point3, point4
 
 
-    return [temp_points[point1], temp_points[point2], temp_points[point3], temp_points[point4]]
-
-
+"""
+Populates user dictionary with user's x, y, z position
+and pitch and roll
+"""
 def update_userData(points):
-    #points: [point1, point2, point3, point4]
     psi1, psi2, psi3 = points[0][0], points[1][0], points[2][0]
     theta3, theta4 = points[2][1], points[3][1]
     c = (l_23/l) * (math.tan(psi1)-math.tan(psi3))/(math.tan(psi2)-math.tan(ps3))
@@ -113,7 +132,9 @@ def update_userData(points):
     user['yaw'], user['pitch'] = psi_u, theta_u
 
 
-#Returns pitch, yaw that we want to command
+"""
+Calculate desired pitch and yaw based off of user and lamp data
+"""
 def calculate_CommandedPitchandYaw():
     # Spot offset from user
     rOff = user['z']/math.tan(user['pitch']) * (-1)
@@ -137,19 +158,24 @@ def calculate_CommandedPitchandYaw():
     return lampPitch, lampYaw
 
     
-#Computes the distance between two points
+"""
+Compute distances between p1, p2 using distance formula
+"""
 def compute_distance(p1, p2):
     x = p1[0]-p2[0]
     y = p1[1]-p2[1]
     return math.sqrt(math.pow(x, 2) + math.pow(y, 2))
 
-#Initial Calibration Method. Zero out motors
+"""
+Zero Out Motors
+"""
 def calibrate():
     pass
 
-#Perform state transitions and logic 
+"""
+Performs state transitions, motor control
+"""
 def stateChart():
-    points = None
     points = getData()
     #Returns sorted points list. If None, means invalid data
     if points == None:
@@ -197,11 +223,12 @@ def stateChart():
         #Send commanded pitch angle
         pass
 
-#Main Execution
+"""
+Main execution block
+"""
 wiimote.enable(cwiid.FLAG_MESG_IFC)
 wiimote.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN
 calibrate()
 while True:
     stateChart()
-    #break
     time.sleep(1)
