@@ -34,7 +34,7 @@ class MotorController(object):
     pitchId = 3
     broadcastId = 254  # Broad cast ID
     
-    def __init__(self, device="/dev/ttyAMA0", baudrate=9600, timeout=3.0):
+    def __init__(self, device="/dev/ttyAMA0", baudrate=57600, timeout=3.0):
         self.port = serial.Serial(device, baudrate=baudrate, timeout=timeout)
 
     def send(self, id=0, inst=INST_WRITE, addr=0, values=bytearray()):
