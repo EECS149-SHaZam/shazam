@@ -37,14 +37,14 @@ class MotorController(object):
     def __init__(self, device="/dev/ttyAMA0", baudrate=9600, timeout=3.0):
         self.port = serial.Serial(device, baudrate=baudrate, timeout=timeout)
 
-    def send(self, id=0, inst=MotorController.INST_WRITE, addr=0, values=bytearray()):
+    def send(self, id=0, inst=INST_WRITE, addr=0, values=bytearray()):
         if not instanceof(values, bytearray):
             values = bytearray(values)
         
         packet = self.build_packet(id, inst=inst, addr=addr, values=values)
         self.transmit_packet(packet)
         
-    def build_packet(self, id=0, inst=MotorController.INST_WRITE, addr=0, values=bytearray()):
+    def build_packet(self, id=0, inst=INST_WRITE, addr=0, values=bytearray()):
         preamble = bytearray([0xff, 0xff, id])
         
         packet = bytearray([inst, addr]) + values
