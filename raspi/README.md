@@ -78,6 +78,14 @@ Sources:
 * The Ubuntu Documentation: [Network Configuration][]
 * Justin Tung: [How to Configure Proxy Settings in Linux][]
 
+Uploading files remotely
+------------------------
+It was useful to have multiple people working on the pi at once. It was necessary to transfer files, so we used FTP.
+
+```bash
+sudo apt-get install ftpd
+````
+
 [Interfacing with a Wiimote]: https://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/robot/wiimote/
 [Serial port programming]: http://www.elinux.org/Serial_port_programming
 [wifi driver]: http://ubuntuforums.org/showthread.php?t=2235778
