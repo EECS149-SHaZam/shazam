@@ -38,7 +38,7 @@ class MotorController(object):
         self.port = serial.Serial(device, baudrate=baudrate, timeout=timeout)
 
     def send(self, id=0, inst=INST_WRITE, addr=0, values=bytearray()):
-        if not instanceof(values, bytearray):
+        if not isinstance(values, bytearray):
             values = bytearray(values)
         
         packet = self.build_packet(id, inst=inst, addr=addr, values=values)
