@@ -66,6 +66,7 @@ class MotorController(object):
         return checksum
     
     def transmit_packet(self, packet):
+        print(packet)
         self.port.write(packet)
         
 if __name__ == "__main__":
