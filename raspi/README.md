@@ -8,6 +8,7 @@ This project would not be possible without the help of web resources. We want to
 
 * Physical computing with Raspberri Pi: [Interfacing with a Wiimote][]
 * elinux.org: [Serial port programming][]
+* Netgear A6100 [wifi driver][]
 
 Installation
 ------------
@@ -31,4 +32,4 @@ make bt-on rumble
 
 [Interfacing with a Wiimote]: https://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/robot/wiimote/
 [Serial port programming]: http://www.elinux.org/Serial_port_programming
-
+[wifi driver]: http://ubuntuforums.org/showthread.php?t=2235778
