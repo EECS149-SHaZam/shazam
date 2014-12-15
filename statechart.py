@@ -29,6 +29,7 @@ lamp = {'x' : 1, 'y': 0, 'z': 1, 'roll': 0, 'pitch': 0, 'yaw': 0}
 #Read HID data from WiiMote
 def getData():
     temp_points = [] #Unordered point data
+    point1, point2, point3, point4 = 0, 0, 0, 0
     distances = {}
     #Grab relevant data from Wii and put in temp_points
     time.sleep(0.01)    # Wait 1 hundredth of a second between Wiimote messages
@@ -45,8 +46,7 @@ def getData():
         print ('Invalid temp point length %d' %temp_points)
         return None
                              
-
-    #Differentiate points
+    #Calculate respective distances for all pairs of points and put in distances dictionary
     for i in range(0, len(temp_points)):
         for j in range(0, len(temp_points)):
             if i != j:
@@ -54,35 +54,34 @@ def getData():
             else:
                 distances[(i, j)] = float('inf')
 
+    #Indices of min pair of points
     indexA, indexB = min(distances, key=distances.get)
+
+    #Find point1 and point2 based on indexA and indexB
     indexC = 0
-
-    point1, point2 = 0, 0
-
     for i in range(0, len(temp_points)):
         if i != indexA and i!= indexB:
-            distanceA = distances[(i, indexA)]
-            distanceB = distances[(i, indexB)]
-            if distanceA <= distanceB:
-                point1 = indexB
-                point2 = indexA
-            else:
-                point1 = indexA
-                point2 = indexB
             indexC = i
             break
     
-    indexD = 6 - (indexA + indexB + indexC)
-    point3, point4 = 0, 0
+    distanceA = distances[(indexA, indexC)]
+    distanceB = distances[(indexB, indexC)]
+    if distanceA > distanceB:
+        point1 = indexA
+        point2 = indexB
+    else:
+        point1 = indexB
+        point2 = indexA
 
-    distanceC = distances[(point1, indexC)]
-    distanceD = distances[(point1, indexD)]
-    if distanceC <= distanceD:
+    #Find point3 and point4 based on indexC and indexD
+    indexD = 6 - (indexA + indexB + indexC)
+    if temp_points[indexC][1] <= temp_points[indexD][1]
         point3 = indexC
         point4 = indexD
     else:
         point3 = indexD
         point4 = indexC
+
 
     return [temp_points[point1], temp_points[point2], temp_points[point3], temp_points[point4]]
 
