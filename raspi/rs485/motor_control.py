@@ -65,6 +65,11 @@ class MotorController(object):
         checksum &= 0xff
         return checksum
     
+    def print_packet(self, packet):
+        from pprint import pprint
+        numbers = [hex(int(item)) for item in packet]
+        pprint(numbers)
+    
     def transmit_packet(self, packet):
         print(packet)
         self.port.write(packet)
