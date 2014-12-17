@@ -24,13 +24,19 @@ inside the `raspi` directory.
 
 Hardware setup
 --------------
-First link
-----------
+
+### First link
+
 Plug in a bluetooth dongle, then press 1 and 2 on the Wiimote. Then, run 
     
 ```bash
 make bt-on rumble
 ```
+
+After the Wiimote is linked, it will start to pulse its rumble pack. Break the program with ctrl-C.
+
+### Motors
+
  then connect the RS-485 adapter (see the README in the rs485 folder). The RS-485 adapter connects to one of the steppers, which is daisy-chained with a second one.
 
 Running
@@ -42,6 +48,8 @@ Other files
 -----------
 
 There was some effort to refactor the statechart into a more object-oriented form. This was left unfinished, in `main_statechart.py`, `manual_statechart.py`, `statechart_class.py`, `messages.py`, `wiimote/lights.py`, and `wiimote/buttons.py`.
+
+`main_statechart.py` is the entry point for this alternate version. It is runnable, but it does not send motor commands as of yet.
 
 Raspberry Pi system configuration
 =================================
