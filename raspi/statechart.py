@@ -455,4 +455,4 @@ if __name__ == "__main__":
     wiimote = cwiid.Wiimote()
     if verbose:
         print("Paired")
-    deploy(mc, wiimote)
+    deploy(wiimote, mc)
