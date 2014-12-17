@@ -1,3 +1,4 @@
+from __future__ import division
 import time, math
 import cwiid
 from wiimote import connect, Lights
@@ -27,7 +28,7 @@ def getData():
         print ('Invalid temp point length %d' %temp_points)
         return None
 
-    print messages
+    #print messages
                              
     #Calculate respective distances for all pairs of points and put in distances dictionary
     getDistances(temp_points)
@@ -75,7 +76,7 @@ def manual_statechart():
 ##            MANUAL_STATE = MANUAL_RUMBLE
 ##        else:
         MANUAL_STATE = MANUAL_ON
-
+    print "pitch %d yaw %d" %(desiredPitch, desiredYaw)
     if MANUAL_STATE == MANUAL_OFF:
         pass
     elif (desiredYaw > mc.YAW_UPPER_LIMIT or desiredYaw < mc.YAW_LOWER_LIMIT or
@@ -165,7 +166,7 @@ def update_userData(points):
     b = math.tan(psi1) - (math.tan(psi2) * c)
 
     psi_u = math.atan2(-a, b)
-    print "psi1: %f psi2: %f psi3: %f psi_u: %f c: %f" %(psi1*rad2deg, psi2*rad2deg, psi3*rad2deg, psi_u*rad2deg, c)
+    #print "psi1: %f psi2: %f psi3: %f psi_u: %f c: %f" %(psi1*rad2deg, psi2*rad2deg, psi3*rad2deg, psi_u*rad2deg, c)
 
     x3 = l*(math.cos(psi_u) + math.sin(psi_u)*math.tan(psi1))/(math.tan(psi1)-math.tan(psi3))
     y3 = x3*(math.tan(psi3) * (-1))
@@ -205,50 +206,70 @@ def update_userData(points):
 Calculate desired pitch and yaw based off of user and lamp data
 """
 def calculate_CommandedPitchandYaw():
-    # Spot offset from user
-    rOff = user['z']/math.tan(user['pitch']) * (-1)
-    xOff = rOff * math.cos(user['yaw']) * (-1)
-    yOff = rOff * math.sin(user['yaw'])
-
-    #Spot position in Global frame
-    xSpot = user['x'] + xOff
-    ySpot = user['y'] + yOff
-
-    #Spot offset from Lamp
-    xOffL = xSpot - lamp['x']
-    yOffL = ySpot - lamp['y']
+##    # Spot offset from user
+##    rOff = user['z']/math.tan(user['pitch']) * (-1)
+##    xOff = rOff * math.cos(user['yaw']) * (-1)
+##    yOff = rOff * math.sin(user['yaw'])
+##
+##    #Spot position in Global frame
+##    xSpot = user['x'] + xOff
+##    ySpot = user['y'] + yOff
+##
+##    #Spot offset from Lamp
+##    xOffL = xSpot - lamp['x']
+##    yOffL = ySpot - lamp['y']
+##    rOffL = math.sqrt(xOffL*xOffL + yOffL*yOffL)
+##
+##    #Lamp Pitch and Yaw commands
+##    lampPitch = math.atan2(lamp['z'], rOffL)
+##    lampYaw = math.atan2(yOffL, xOffL)
+    
+    #User offset from Lamp
+    xOffL = user['x'] - lamp['x']
+    yOffL = user['y'] - lamp['y']
+    zOffL = user['z'] - lamp['z'] # add 20cm to avoid user's eyes
     rOffL = math.sqrt(xOffL*xOffL + yOffL*yOffL)
 
     #Lamp Pitch and Yaw commands
-    lampPitch = math.atan2(lamp['z'], rOffL)
+    lampPitch = math.atan2(zOffL, rOffL)
     lampYaw = math.atan2(yOffL, xOffL)
 
-    print ('xSpot - %f, ySpot - %f, lampPitch - %f, lampYaw - %f' %(xSpot, ySpot, lampPitch*(180/math.pi), lampYaw*(180/math.pi)))
+    #print ('xOffL - %f, yOffL - %f, lampPitch - %f, lampYaw - %f' %(xOffL, yOffL, lampPitch*rad2deg, lampYaw*rad2deg))
+    print "lampPitch: %f, lampYaw: %f" %(lampPitch*rad2deg, lampYaw*rad2deg)
     return lampPitch, lampYaw
 
 """
 Set lamp Pitch through the motor controller
 """
 def setPitch(desiredPitch):
-    pitchRate = int(math.ceil(abs(mc.MOVING_SF*((desiredPitch - lamp['pitch'])/SAMPLE_TIME))))
-    pitchCommand = mc.calculatePitchCommand(desiredPitch)
+    pitchLimited, pitchCommand = mc.calculatePitchCommand(desiredPitch)
+    pitchRate = int(math.ceil(abs(mc.MOVING_SF*((pitchLimited - lamp['pitch'])/SAMPLE_TIME))))
+
+    # Protect against pitchRate = 0 giving max rate
+    if pitchRate == 0:
+        pitchRate = 100
 
     mc.pitch_rate(pitchRate)
     mc.pitch_to(pitchCommand)
 
-    lamp['pitch'] = desiredPitch
+    lamp['pitch'] = pitchLimited
+    print "pitch %f" %(pitchLimited*rad2deg)
 
 """
 Set lamp Yaw through the motor controller
 """
 def setYaw(desiredYaw):
-    yawRate = int(math.ceil(abs(mc.MOVING_SF*((desiredYaw - lamp['yaw'])/SAMPLE_TIME))))
-    yawCommand = mc.calculateYawCommand(desiredYaw)
+    yawLimited, yawCommand = mc.calculateYawCommand(desiredYaw)
+    yawRate = int(math.ceil(abs(mc.MOVING_SF*((yawLimited - lamp['yaw'])/SAMPLE_TIME))))
 
+    # Protect against yawRate = 0 giving max rate
+    if yawRate == 0:
+        yawRate = 100
+    
     mc.yaw_rate(yawRate)
     mc.yaw_to(yawCommand)
 
-    lamp['yaw'] = desiredYaw
+    lamp['yaw'] = yawLimited
 
 """
 Compute distances between p1, p2 using distance formula
@@ -313,12 +334,12 @@ def stateChart():
         pass
     elif yaw_state == YAW_TRACK:
         #Send commanded yaw angle
-        pass
+        setYaw(com_yaw)
     if pitch_state == PITCH_STAY:
         pass
     elif pitch_state == PITCH_TRACK:
         #Send commanded pitch angle
-        pass
+        setPitch(com_pitch)
 
 def callback_function(messages, time):
     global latestMessages
@@ -328,8 +349,10 @@ def callback_function(messages, time):
     latestButton = wiimote.state['buttons']
     if latestButton == cwiid.BTN_A:
         AUTO_MODE = False
+        wiimote.led = 2 | 4
     if latestButton == cwiid.BTN_A + cwiid.BTN_B:
         AUTO_MODE = True
+        wiimote.led = 1 | 8
 
 """
 Init
@@ -369,8 +392,8 @@ yPixOffset = 768/2
 
 pitch_state = PITCH_STAY
 yaw_state = YAW_STAY
-max_threshold_s = 45*math.pi/180
-min_threshold_s = 5*math.pi/180
+max_threshold_s = float('inf')#10*math.pi/180
+min_threshold_s = 0#1*math.pi/180
 max_threshold_t = max_threshold_s * .5
 min_threshold_t = min_threshold_s * .5
 mc = motor_control.MotorController()
@@ -378,8 +401,9 @@ print("Pairing..")
 wiimote = cwiid.Wiimote()
 print("Paired")
 user = {'x' : 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0}
-wii = {'x' : 0, 'y': 0, 'z': 1, 'roll': 0, 'pitch': 0, 'yaw': 0}
-lamp = {'x' : 1, 'y': 0, 'z': 1, 'roll': 0, 'pitch': 0, 'yaw': 0}
+wii = {'x' : 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0}
+lamp = {'x' : .013, 'y': -.17, 'z': -0.056, 'roll': 0, 'pitch': 0, 'yaw': 0}
+setPitch(lamp['pitch']); setYaw(lamp['yaw'])
 distances = {}
 AUTO_MODE = True
 """
@@ -388,6 +412,7 @@ Main execution block
 wiimote.enable(cwiid.FLAG_MESG_IFC)
 wiimote.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN
 wiimote.mesg_callback = callback_function
+wiimote.led = 1 | 8
 latestMessages = wiimote.get_mesg()
 latestButton = 0
 calibrate()

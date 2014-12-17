@@ -52,9 +52,9 @@ class MotorController(object):
     @classmethod
     def calculatePitchAndYawCommand(cls, pitchRad, yawRad):
         if pitchRad < cls.PITCH_LOWER_LIMIT:
-            pitch = cls.PITCH_LOWER_LIMIT
+            pitchRad = cls.PITCH_LOWER_LIMIT
         elif pitchRad > cls.PITCH_UPPER_LIMIT:
-            pitch = cls.PITCH_UPPER_LIMIT
+            pitchRad = cls.PITCH_UPPER_LIMIT
             
         if yawRad < cls.YAW_LOWER_LIMIT:
             yawRad = cls.YAW_LOWER_LIMIT
@@ -69,12 +69,12 @@ class MotorController(object):
     @classmethod
     def calculatePitchCommand(cls, pitchRad):
         if pitchRad < cls.PITCH_LOWER_LIMIT:
-            pitch = cls.PITCH_LOWER_LIMIT
+            pitchRad = cls.PITCH_LOWER_LIMIT
         elif pitchRad > cls.PITCH_UPPER_LIMIT:
-            pitch = cls.PITCH_UPPER_LIMIT
+            pitchRad = cls.PITCH_UPPER_LIMIT
 
         pitchCommand = cls.MIN_PITCH - pitchRad*cls.SF_PITCH
-        return int(pitchCommand)
+        return pitchRad, int(pitchCommand)
 
     @classmethod
     def calculateYawCommand(cls, yawRad):
@@ -84,7 +84,7 @@ class MotorController(object):
             yawRad = cls.YAW_UPPER_LIMIT
 
         yawCommand = cls.STRAIGHT_YAW - yawRad*cls.SF_YAW
-        return int(yawCommand)
+        return yawRad, int(yawCommand)
     
 
     yawId = 2
