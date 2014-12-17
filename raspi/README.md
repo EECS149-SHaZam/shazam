@@ -29,43 +29,51 @@ Press 1 and 2 on the Wiimote. Then, run
 make bt-on rumble
 ```
 
+
 Raspberry Pi system configuration
 =================================
+
 Connecting to the internet
 --------------------------
+
 In the lab, it is not possible to use the ethernet connections for the Pi. There are protections on them to prevent this. Instead, I had to use my laptop as a proxy and share its internet connection with the Pi. To do this:
 
 1) Connect the Pi to the laptop with an ethernet cable.
+
 2) Turn on the ssh server on the laptop.
-3) Set the laptop's ethernet IP manually to 192.168.2.1.
-4) Set the pi's IP address:
+
+3) Connect to Airbears or Airbears2 from the laptop.
+
+4) Set the laptop's ethernet IP manually to 192.168.2.1, and the mask to 255.255.255.0.
+
+5) Set the pi's IP address:
 
 ```bash
 sudo ifconfig eth0 192.168.2.2 netmask 255.255.255.0
 sudo route add default gw 192.168.2.1 eth0
 ```
 
-5) Add nameservers to the pi. In `/etc/resolv.conf`, 
+6) Add nameservers to the pi. In `/etc/resolv.conf`, 
 
 ```conf
 nameserver 8.8.8.8
 nameserver 8.8.4.4
 ```
 
-6) Start an ssh tunnel on the pi:
+7) Start an ssh tunnel on the pi:
 
 ```bash
 ssh -D 8080 username@192.168.2.1
 ```
 
-7) Configure the pi's proxy settings. In another shell in the pi, execute
+8) Configure the pi's proxy settings. In another shell in the pi, execute
 
 ```bash
 export http_proxy=http://127.0.0.1:8080
 export ftp_proxy=ftp://127.0.0.1:8080
 ```
 
-8) Now, try to ping a nameserver:
+9) Now, try to ping a nameserver:
 
 ```bash
 ping google.com
@@ -74,13 +82,88 @@ ping google.com
     It should work.
 
 Sources:
+
 * fclose.com: [Making ssh proxy][]
 * The Ubuntu Documentation: [Network Configuration][]
 * Justin Tung: [How to Configure Proxy Settings in Linux][]
 
+Pi NAT for the gateway
+----------------------
+
+To connect to the gateway laptop from the Pi without using an IP address:
+
+```bash
+sudo echo '192.168.2.1 gateway' >> /etc/hosts
+```
+
+Now the pi can refer to the laptop as `gateway` instead of using the IP address.
+
+Source:
+
+* Rackspace.com: [How do I modify my hosts file?][]
+
+Mac NAT for the Pi
+------------------
+
+```bash
+sudo echo '192.168.2.2 raspberrypi' >> /private/etc/hosts
+```
+
+Now, the Mac can refer to the Pi as `raspberrypi` instead of using an IP address.
+
+Source:
+
+* Rackspace.com: [How do I modify my hosts file?][]
+
 Uploading files remotely
 ------------------------
-It was useful to have multiple people working on the pi at once. It was necessary to transfer files, so we used NFS. The instructions are in NixCraft's [Ubuntu Linux NFS Server installation and Configuration][].
+
+It was useful to have multiple people working on the pi at once. It was necessary to transfer files, so we used NFS.
+
+First, we do some setup on the Pi. Run:
+
+```bash
+sudo apt-get install nfs-kernel-server portmap nfs-common
+```
+
+Edit `/etc/exports`:
+
+```conf
+/home/pi gateway(rw,async,insecure,anonuid=1000,no_subtree_check,all_squash)
+```
+
+Edit `/etc/netconfig`:
+
+```conf
+udp        tpi_clts      v     inet     udp     -       -
+tcp        tpi_cots_ord  v     inet     tcp     -       -
+#udp6       tpi_clts      v     inet6    udp     -       -
+#tcp6       tpi_cots_ord  v     inet6    tcp     -       -
+rawip      tpi_raw       -     inet      -      -       -
+local      tpi_cots_ord  -     loopback  -      -       -
+unix       tpi_cots_ord  -     loopback  -      -       -
+```
+
+Now, run:
+```bash
+sudo /etc/init.d/nfs-kernel-server restart
+```
+
+Source:
+
+* NixCraft: [Ubuntu Linux NFS Server Installation and Configuration][]
+
+### Connecting from Mac
+Using the GUI does not work well with NAT, but the command line tools do. Run:
+
+```bash
+mkdir /Volumes/pi
+mount -t nfs -o tcp raspberrypi:/home/pi /Volumes/pi
+```
+
+Source:
+
+* Michel Jansen: [NFS behind NAT on Mac OS X][]
 
 
 [Interfacing with a Wiimote]: https://www.cl.cam.ac.uk/projects/raspberrypi/tutorials/robot/wiimote/
@@ -89,4 +172,6 @@ It was useful to have multiple people working on the pi at once. It was necessar
 [Making ssh proxy]: http://www.fclose.com/944/proxy-using-ssh-tunnel/
 [Network Configuration]: https://help.ubuntu.com/10.04/serverguide/network-configuration.html
 [How to Configure Proxy Settings in Linux]: http://justintung.com/2013/04/25/how-to-configure-proxy-settings-in-linux/
-[Ubuntu Linux NFS Server installation and Configuration]: http://www.cyberciti.biz/faq/how-to-ubuntu-nfs-server-configuration-howto/
+[Ubuntu Linux NFS Server Installation and Configuration]: http://www.cyberciti.biz/faq/how-to-ubuntu-nfs-server-configuration-howto/
+[NFS behind NAT on Mac OS X]: http://micheljansen.org/blog/entry/38
+[How do I modify my hosts file?]: http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file#Linux
