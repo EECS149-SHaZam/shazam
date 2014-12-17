@@ -42,7 +42,7 @@ In the lab, it is not possible to use the ethernet connections for the Pi. There
 
 2) Turn on the ssh server on the laptop.
 
-3) Connect to Airbears or Airbears2 from the laptop.
+3) Connect to Airbears from the laptop. Airbears2 will not work.
 
 4) Set the laptop's ethernet IP manually to 192.168.2.1, and the mask to 255.255.255.0.
 
@@ -126,13 +126,13 @@ First, we do some setup on the Pi. Run:
 sudo apt-get install nfs-kernel-server portmap nfs-common
 ```
 
-Edit `/etc/exports`:
+Edit `/etc/exports` to add the home folder to the list of shares:
 
 ```conf
 /home/pi gateway(rw,async,insecure,anonuid=1000,no_subtree_check,all_squash)
 ```
 
-Edit `/etc/netconfig`:
+Edit `/etc/netconfig` to disable IPv6, which generates errors for us:
 
 ```conf
 udp        tpi_clts      v     inet     udp     -       -
@@ -174,4 +174,4 @@ Source:
 [How to Configure Proxy Settings in Linux]: http://justintung.com/2013/04/25/how-to-configure-proxy-settings-in-linux/
 [Ubuntu Linux NFS Server Installation and Configuration]: http://www.cyberciti.biz/faq/how-to-ubuntu-nfs-server-configuration-howto/
 [NFS behind NAT on Mac OS X]: http://micheljansen.org/blog/entry/38
-[How do I modify my hosts file?]: http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file#Linux
+[How do I modify my hosts file?]: http://www.rackspace.com/knowledge_center/article/how-do-i-modify-my-hosts-file
