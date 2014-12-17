@@ -1,0 +1,6 @@
+*.pyc
+*.swp
+*~
+cwiid/
+.nfs*
+._.nfs*
