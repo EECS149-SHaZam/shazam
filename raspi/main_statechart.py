@@ -31,10 +31,7 @@ yPixOffset = 768/2
 
 pitch_state = PITCH_STAY
 yaw_state = YAW_STAY
-max_threshold_s = 45*math.pi/180
-min_threshold_s = 5*math.pi/180
-max_threshold_t = max_threshold_s * .5
-min_threshold_t = min_threshold_s * .5
+
 
 class MainStatechart(Statechart):
     def __init__(self, wiimote, motor_controller, *args, **kwargs):
@@ -58,6 +55,12 @@ class MainStatechart(Statechart):
         self.state.user = {'x' : 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0}
         self.state.wii = {'x' : 0, 'y': 0, 'z': 1, 'roll': 0, 'pitch': 0, 'yaw': 0}
         self.state.lamp = {'x' : 1, 'y': 0, 'z': 1, 'roll': 0, 'pitch': 0, 'yaw': 0}
+    
+    def __del__(self):
+        self.wiimote.close()
+        del self.motor_controller
+        
+        super(MainStatechart, self).__del__()
     
     def wiimote_callback(self, messages, time):
         self.inputs.messages.append(messages)
@@ -259,8 +262,13 @@ class MainStatechart(Statechart):
         
         if self.inputs.buttons.a:
             self.state.auto = False
-        if self.inputs.buttons.a and self.state.buttons.b:
+        if self.inputs.buttons.a and self.inputs.buttons.b:
             self.state.auto = True
+        
+        if self.state.auto:
+            Lights(self.wiimote).auto()
+        else:
+            Lights(self.wiimote).manual();
         
 
 def stateChart():
