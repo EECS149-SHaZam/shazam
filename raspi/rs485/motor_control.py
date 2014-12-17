@@ -46,10 +46,14 @@ class MotorController(object):
 
     @classmethod
     def calculatePitchAndYawCommand(cls, pitchRad, yawRad):
-        if pitchRad < -math.pi or pitchRad > 0:
-            return None
-        if yawRad < -math.pi or yawRad > math.pi:
-            return None
+        if pitchRad < -math.pi:
+            pitch = -math.pi
+        elif pitchRad > 0:
+            pitch = 0
+        if yawRad < -math.pi:
+            yawRad = -math.pi
+        elif yawRad > math.pi:
+            yawRad = math.pi
 
         pitchCommand = cls.MIN_PITCH - pitchRad*cls.SF_PITCH
         yawCommand = cls.STRAIGHT_YAW - yawRad*cls.SF_YAW
@@ -182,9 +186,9 @@ if __name__ == "__main__":
     abcf = float(abc)
     print("Time Stamp: "+str(abc))
     print("    float: %f") %(abcf)
-    period = 2; #seconds
+    period = 1; #seconds
     startTime = time.time() #seconds
-    sampleTime = 0.25 #seconds
+    sampleTime = 0.2 #0.25 #seconds
     currentPitch, currentYaw = 0, 0
     posNeg = 1
     posNegP = 1;
@@ -210,13 +214,17 @@ if __name__ == "__main__":
 
         pitchRate = int(math.ceil(abs(mc.MOVING_SF*((desiredPitch - (currentPitch-(45/2)*mc.deg2rad))/sampleTime))))
         yawRate = int(math.ceil(abs(mc.MOVING_SF*((desiredYaw - currentYaw)/sampleTime))))
-        mc.send(id=mc.pitchId, inst=mc.INST_WRITE, addr=mc.Address.P_MOVING_SPEED, values=mc.split_int(pitchRate))
-        mc.send(id=mc.yawId, inst=mc.INST_WRITE, addr=mc.Address.P_MOVING_SPEED, values=mc.split_int(yawRate))
+        #mc.send(id=mc.pitchId, inst=mc.INST_WRITE, addr=mc.Address.P_MOVING_SPEED, values=mc.split_int(pitchRate))
+        #mc.send(id=mc.yawId, inst=mc.INST_WRITE, addr=mc.Address.P_MOVING_SPEED, values=mc.split_int(yawRate))
+        mc.pitch_rate(pitchRate)
+        mc.yaw_rate(yawRate)
         
         pitchCommand, yawCommand = mc.calculatePitchAndYawCommand(desiredPitch,desiredYaw)
         print("yawRate: %d") %(yawRate)
-        mc.send(id=mc.pitchId, inst=mc.INST_WRITE, addr=mc.Address.P_GOAL_POSITION, values=mc.split_int(pitchCommand))
-        mc.send(id=mc.yawId, inst=mc.INST_WRITE, addr=mc.Address.P_GOAL_POSITION, values=mc.split_int(yawCommand))
+        #mc.send(id=mc.pitchId, inst=mc.INST_WRITE, addr=mc.Address.P_GOAL_POSITION, values=mc.split_int(pitchCommand))
+        #mc.send(id=mc.yawId, inst=mc.INST_WRITE, addr=mc.Address.P_GOAL_POSITION, values=mc.split_int(yawCommand))
+        mc.pitch_to(pitchCommand)
+        mc.yaw_to(yawCommand)
 
         currentPitch, currentYaw = desiredPitch+(45/2)*mc.deg2rad, desiredYaw
         
