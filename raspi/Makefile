@@ -46,6 +46,7 @@ led-counter:
 clean:
 	rm -f *.pyc
 	rm -f wiimote/*.pyc
+	rm -f rs485/*.pyc
 	rm -rf cwiid
 
 .PHONY: deps \
