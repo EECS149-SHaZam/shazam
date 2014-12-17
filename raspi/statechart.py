@@ -253,7 +253,7 @@ def setPitch(desiredPitch):
     mc.pitch_to(pitchCommand)
 
     lamp['pitch'] = pitchLimited
-    print "pitch %f" %(pitchLimited*rad2deg)
+    print "pitchLimited %f" %(pitchLimited*rad2deg)
 
 """
 Set lamp Yaw through the motor controller
@@ -270,6 +270,7 @@ def setYaw(desiredYaw):
     mc.yaw_to(yawCommand)
 
     lamp['yaw'] = yawLimited
+    print "yawLimited %f" %(yawLimited*rad2deg)
 
 """
 Compute distances between p1, p2 using distance formula
@@ -307,23 +308,23 @@ def stateChart():
 
     #State transition logic
     if yaw_state == YAW_STAY:
-        if yaw_diff > min_threshold_s or yaw_diff < max_threshold_s:
+        if yaw_diff > min_threshold_s and yaw_diff < max_threshold_s:
             yaw_state = YAW_TRACK
         else:
             yaw_state = YAW_STAY
     if yaw_state == YAW_TRACK:
-        if yaw_diff > min_threshold_t or yaw_diff < max_threshold_t:
+        if yaw_diff > min_threshold_t and yaw_diff < max_threshold_t:
             yaw_state = YAW_TRACK
         else:
             yaw_state = YAW_STAY
     
     if pitch_state == PITCH_STAY:
-        if pitch_diff > min_threshold_s or pitch_diff < max_threshold_s:
+        if pitch_diff > min_threshold_s and pitch_diff < max_threshold_s:
             pitch_state = PITCH_TRACK
         else:
             pitch_state = PITCH_STAY
     if pitch_state == PITCH_TRACK:
-        if pitch_diff > min_threshold_t or pitch_diff < max_threshold_t:
+        if pitch_diff > min_threshold_t and pitch_diff < max_threshold_t:
             pitch_state = PITCH_TRACK
         else:
             pitch_state = PITCH_STAY
@@ -392,8 +393,8 @@ yPixOffset = 768/2
 
 pitch_state = PITCH_STAY
 yaw_state = YAW_STAY
-max_threshold_s = float('inf')#10*math.pi/180
-min_threshold_s = 0#1*math.pi/180
+max_threshold_s = 25*math.pi/180
+min_threshold_s = 0# 1*math.pi/180
 max_threshold_t = max_threshold_s * .5
 min_threshold_t = min_threshold_s * .5
 mc = motor_control.MotorController()
