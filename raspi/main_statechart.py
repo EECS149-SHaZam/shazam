@@ -17,18 +17,6 @@ PITCH_STAY = 4
 AUTO_STATE = 1
 MANUAL_STATE = 2
 
-#LED Configuration Params
-l_12 = 0.064
-l_23 = 0.133
-l = l_12 + l_23
-h = 0.171
-
-#Wiimote Camera Params
-rad2deg = 180/math.pi
-deg2rad = 1/rad2deg
-radPerPix = 0.197/250 #(40*deg2rad)/1024.0
-xPixOffset = 1024/2
-yPixOffset = 768/2
 
 pitch_state = PITCH_STAY
 yaw_state = YAW_STAY
@@ -81,70 +69,7 @@ class MainStatechart(Statechart):
         message = wiimote.get_mesg()
         self.inputs.messages.append(message)
         ir.update_inputs(self.inputs)
-        
-        def update_userData(points):
-            """
-            Populates user dictionary with user's x, y, z position
-            and pitch and roll
-            """
-            user = self.state.user  # result
-
-            psi1, psi2, psi3 = points[0][0], points[1][0], points[2][0]
-            theta3, theta4 = points[2][1], points[3][1]
-
-            #Convert from camera pixels to radians
-            psi1 = (psi1-xPixOffset)*radPerPix
-            psi2 = (psi2-xPixOffset)*radPerPix
-            psi3 = (psi3-xPixOffset)*radPerPix
-
-            theta3 = (theta3-yPixOffset)*radPerPix
-            theta4 = (theta4-yPixOffset)*radPerPix
-            #print "psi1: %f psi2: %f psi3:%f" %(psi1*rad2deg, psi2*rad2deg, psi3*rad2deg)
-            #print "theta3: %f theta4: %f" %(theta3*rad2deg, theta4*rad2deg)
-            
-            c = (l_23/l) * (math.tan(psi1)-math.tan(psi3))/(math.tan(psi2)-math.tan(psi3))
-            a = 1-c #1 - c
-            b = math.tan(psi1) - (math.tan(psi2) * c)
-
-            psi_u = math.atan2(-a, b)
-            print "psi1: %f psi2: %f psi3: %f psi_u: %f c: %f" %(psi1*rad2deg, psi2*rad2deg, psi3*rad2deg, psi_u*rad2deg, c)
-
-            x3 = l*(math.cos(psi_u) + math.sin(psi_u)*math.tan(psi1))/(math.tan(psi1)-math.tan(psi3))
-            y3 = x3*(math.tan(psi3) * (-1))
-            z3 = x3*math.tan(theta3)
-            
-            x_u = x3 - ((l/2)*math.sin(psi_u))
-            y_u = y3 - ((l/2)*math.cos(psi_u))
-            z_u = z3
-            
-            #x_u = (l * (math.cos(psi_u) + math.sin(psi_u) * (math.tan(psi1) - .5)))/(math.tan(psi1) - math.tan(psi3))
-            #y_u = x_u * math.tan(psi_u)
-            #z_u = (x_u + l/2 * math.sin(psi_u)) * math.tan(theta3)
-
-            #z3 = z_u
-            #x3 = (x_u + l/2 * math.sin(psi_u))
-            r3 = math.sqrt(x3*x3 + z3*z3)
-            #print "z_u: %f x_u: %f y_u: %f psi_u: %f" %(z_u, x_u, y_u, psi_u*rad2deg)
-            theta_prime = abs(theta4-theta3)
-            h_prime = r3 * math.sin(theta_prime)
-            alpha = math.pi/2 - theta3
-            beta = math.pi/2 - theta_prime
-            #print "h_prime: %f" %h_prime
-            if h_prime > h:
-                h_prime = h
-            gamma = math.acos(h_prime/h)
-            theta_u = -math.pi + alpha + beta - gamma
-            if theta_u > 0:
-                thetau = -math.pi + alpha + beta + gamma
-
-            #print "theta_u: %f psi_u %f" %(theta_u*rad2deg, psi_u*rad2deg)
-
-            user['x'], user['y'], user['z'] = x_u, y_u, z_u
-            user['yaw'], user['pitch'] = psi_u, theta_u
-        
-        if self.inputs.points:
-            update_userData(self.inputs.points)
-
+        ir.update_state(self.inputs, self.state)
         
     def update_state(self):
         """
