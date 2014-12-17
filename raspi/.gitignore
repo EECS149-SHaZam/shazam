@@ -2,4 +2,5 @@
 *.swp
 *~
 cwiid/
-
+.nfs*
+._.nfs*
