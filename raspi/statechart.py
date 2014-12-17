@@ -1,13 +1,18 @@
 import time, math
 import cwiid
+from wiimote import connect, Lights
 
 """
 Read HID data from WiiMote and return list points of infrared positions
 """
 def getData():
+    if not AUTO_MODE:
+        print "Manual mode enabled"
+        return None
+    else:
+        print "Auto mode engaged"
     temp_points = [] #Unordered point data
     point1, point2, point3, point4 = 0, 0, 0, 0
-    messages = None
     #Grab relevant data from Wii and put in temp_points
     messages = latestMessages
     """while True:
@@ -15,6 +20,7 @@ def getData():
         if (type(messages[0][1]) is list) and  None not in messages[0][1]:
             break
     """
+    print messages
     if not (type(messages[0][1]) is list) or  None in messages[0][1]:
             return None
     for msg in messages[0][1]:   # Loop through IR LED sources
@@ -238,9 +244,14 @@ def stateChart():
 
 def callback_function(messages, time):
     global latestMessages
+    global AUTO_MODE
     #print("calledback!")
     #print(arg1); print(arg2)
     latestMessages = messages
+    if wiimote.state['buttons'] == 8:
+        AUTO_MODE = False
+    if wiimote.state['buttons'] == 12:
+        AUTO_MODE = True
 
 """
 Init
@@ -250,6 +261,9 @@ YAW_TRACK = 1
 YAW_STAY = 2
 PITCH_TRACK = 3
 PITCH_STAY = 4
+
+AUTO_STATE = 1
+MANUAL_STATE = 2
 
 #LED Configuration Params
 l_12 = 0.064
@@ -277,7 +291,7 @@ user = {'x' : 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0}
 wii = {'x' : 0, 'y': 0, 'z': 1, 'roll': 0, 'pitch': 0, 'yaw': 0}
 lamp = {'x' : 1, 'y': 0, 'z': 1, 'roll': 0, 'pitch': 0, 'yaw': 0}
 distances = {}
-
+AUTO_MODE = True
 """
 Main execution block
 """
