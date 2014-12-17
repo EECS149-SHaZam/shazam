@@ -9,11 +9,14 @@ def getData():
     point1, point2, point3, point4 = 0, 0, 0, 0
     messages = None
     #Grab relevant data from Wii and put in temp_points
-    while True:
+    messages = latestMessages
+    """while True:
         messages = wiimote.get_mesg()   # Get Wiimote messages
         if (type(messages[0][1]) is list) and  None not in messages[0][1]:
             break
-    
+    """
+    if not (type(messages[0][1]) is list) or  None in messages[0][1]:
+            return None
     for msg in messages[0][1]:   # Loop through IR LED sources
         temp_points.append(msg['pos'])
                          
@@ -21,7 +24,7 @@ def getData():
         print ('Invalid temp point length %d' %temp_points)
         return None
 
-    #print messages
+    print messages
                              
     #Calculate respective distances for all pairs of points and put in distances dictionary
     getDistances(temp_points)
@@ -187,7 +190,10 @@ def stateChart():
     if points == None:
         return
 
-    update_userData(points)
+    try:
+        update_userData(points)
+    except:
+        pass
 
     return
     com_pitch, com_yaw = calculate_CommandedPitchandYaw()
@@ -229,6 +235,13 @@ def stateChart():
     elif pitch_state == PITCH_TRACK:
         #Send commanded pitch angle
         pass
+
+def callback_function(messages, time):
+    global latestMessages
+    #print("calledback!")
+    #print(arg1); print(arg2)
+    latestMessages = messages
+
 """
 Init
 """
@@ -257,8 +270,9 @@ max_threshold_s = 45*math.pi/180
 min_threshold_s = 5*math.pi/180
 max_threshold_t = max_threshold_s * .5
 min_threshold_t = min_threshold_s * .5
-
+print("Pairing..")
 wiimote = cwiid.Wiimote()
+print("Paired")
 user = {'x' : 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0}
 wii = {'x' : 0, 'y': 0, 'z': 1, 'roll': 0, 'pitch': 0, 'yaw': 0}
 lamp = {'x' : 1, 'y': 0, 'z': 1, 'roll': 0, 'pitch': 0, 'yaw': 0}
@@ -269,8 +283,10 @@ Main execution block
 """
 wiimote.enable(cwiid.FLAG_MESG_IFC)
 wiimote.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN
+wiimote.mesg_callback = callback_function
+latestMessages = wiimote.get_mesg()
 calibrate()
 while True:
     stateChart()
-    time.sleep(.000001)
+    time.sleep(0.2)
 
