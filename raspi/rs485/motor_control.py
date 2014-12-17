@@ -31,11 +31,15 @@ class MotorController(object):
     MAX_PITCH = 828  # Corresponds to -PI rad
     DOWN_PITCH = 515
     SF_PITCH = (MAX_PITCH - MIN_PITCH)/math.pi # Scale factor for pitch commands
+    PITCH_UPPER_LIMIT = 0 # Radians
+    PITCH_LOWER_LIMIT = -math.pi/2 # Radians
 
     STRAIGHT_YAW = 362
     MIN_YAW = 50        # +90deg, left turn
     MAX_YAW = 664       # -90deg, right turn
     SF_YAW = (MAX_YAW - MIN_YAW)/math.pi # Scale factor for yaw commands
+    YAW_UPPER_LIMIT = math.pi
+    YAW_LOWER_LIMIT = -math.pi
 
     MAX_MOVING_SPEED = 200
     MOVING_SF = 0.111*2*math.pi/60 #0.111rpm * 2pi = 0.6974rad/min = 0.0116 rad/s (per count)
@@ -47,14 +51,15 @@ class MotorController(object):
 
     @classmethod
     def calculatePitchAndYawCommand(cls, pitchRad, yawRad):
-        if pitchRad < -math.pi:
-            pitch = -math.pi
-        elif pitchRad > 0:
-            pitch = 0
-        if yawRad < -math.pi:
-            yawRad = -math.pi
-        elif yawRad > math.pi:
-            yawRad = math.pi
+        if pitchRad < cls.PITCH_LOWER_LIMIT:
+            pitch = cls.PITCH_LOWER_LIMIT
+        elif pitchRad > cls.PITCH_UPPER_LIMIT:
+            pitch = cls.PITCH_UPPER_LIMIT
+            
+        if yawRad < cls.YAW_LOWER_LIMIT:
+            yawRad = cls.YAW_LOWER_LIMIT
+        elif yawRad > cls.YAW_UPPER_LIMIT:
+            yawRad = cls.YAW_UPPER_LIMIT
 
         pitchCommand = cls.MIN_PITCH - pitchRad*cls.SF_PITCH
         yawCommand = cls.STRAIGHT_YAW - yawRad*cls.SF_YAW
@@ -68,6 +73,9 @@ class MotorController(object):
     
     def __init__(self, device="/dev/ttyAMA0", baudrate=57600, timeout=3.0):
         self.port = serial.Serial(device, baudrate=baudrate, timeout=timeout)
+        
+    def __del__(self):
+        self.port.close()
         
     def send(self, id=0, inst=INST_WRITE, addr=0, values=bytearray()):
         if not isinstance(values, bytearray):
