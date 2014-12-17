@@ -1,7 +1,8 @@
 from time import sleep
-import cwiid
 from wiimote import Lights, connect_loop
 from rs485 import MotorController, enable_rts, disable_rts
+import statechart
+
 
 def blink_rts():
     disable_rts(False)
@@ -11,5 +12,6 @@ def blink_rts():
 
 enable_rts()
 wm = connect_loop(fail_callback=blink_rts)
-wm.close()
+mc = MotorController()
+statechart.deploy(wm, mc)
 

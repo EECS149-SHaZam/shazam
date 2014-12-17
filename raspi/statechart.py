@@ -397,27 +397,44 @@ max_threshold_s = 25*math.pi/180
 min_threshold_s = 0# 1*math.pi/180
 max_threshold_t = max_threshold_s * .5
 min_threshold_t = min_threshold_s * .5
-mc = motor_control.MotorController()
-print("Pairing..")
-wiimote = cwiid.Wiimote()
-print("Paired")
+
 user = {'x' : 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0}
 wii = {'x' : 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0}
 lamp = {'x' : .013, 'y': -.17, 'z': -0.056, 'roll': 0, 'pitch': 0, 'yaw': 0}
-setPitch(lamp['pitch']); setYaw(lamp['yaw'])
+
 distances = {}
 AUTO_MODE = True
-"""
-Main execution block
-"""
-wiimote.enable(cwiid.FLAG_MESG_IFC)
-wiimote.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN
-wiimote.mesg_callback = callback_function
-wiimote.led = 1 | 8
-latestMessages = wiimote.get_mesg()
-latestButton = 0
-calibrate()
-while True:
-    stateChart()
-    time.sleep(SAMPLE_TIME)
 
+    
+def run():
+    global latestMessages
+    global latestButton
+    
+    setPitch(lamp['pitch']); setYaw(lamp['yaw'])
+    """
+    Main execution block
+    """
+    wiimote.enable(cwiid.FLAG_MESG_IFC)
+    wiimote.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN
+    wiimote.mesg_callback = callback_function
+    wiimote.led = 1 | 8
+    latestMessages = wiimote.get_mesg()
+    latestButton = 0
+    calibrate()
+    while True:
+        stateChart()
+        time.sleep(SAMPLE_TIME)
+
+def deploy(wm, motor_controller):
+    global wiimote
+    global mc
+    wiimote = wm
+    mc = motor_controller
+    run()
+
+if __name__ == "__main__":
+    mc = motor_control.MotorController()
+    print("Pairing..")
+    wiimote = cwiid.Wiimote()
+    print("Paired")
+    deploy(mc, wiimote)
