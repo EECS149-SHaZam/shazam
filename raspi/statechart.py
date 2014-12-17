@@ -1,13 +1,15 @@
 import time, math
 import cwiid
 from wiimote import connect, Lights
+from rs485 import motor_control
 
 """
 Read HID data from WiiMote and return list points of infrared positions
 """
 def getData():
     if not AUTO_MODE:
-        print "Manual mode enabled"
+        print "Manual mode enabeled"
+        manual_statechart()
         return None
     else:
         print "Auto mode engaged"
@@ -15,14 +17,9 @@ def getData():
     point1, point2, point3, point4 = 0, 0, 0, 0
     #Grab relevant data from Wii and put in temp_points
     messages = latestMessages
-    """while True:
-        messages = wiimote.get_mesg()   # Get Wiimote messages
-        if (type(messages[0][1]) is list) and  None not in messages[0][1]:
-            break
-    """
-    print messages
+
     if not (type(messages[0][1]) is list) or  None in messages[0][1]:
-            return None
+        return None
     for msg in messages[0][1]:   # Loop through IR LED sources
         temp_points.append(msg['pos'])
                          
@@ -42,6 +39,66 @@ def getData():
     return [temp_points[point1], temp_points[point2], temp_points[point3], temp_points[point4]]
 
 """
+Manual mode state logic
+"""
+def manual_statechart():
+    global MANUAL_STATE
+    print "latest button is %d" %latestButton
+    desiredPitch, desiredYaw = lamp['pitch'], lamp['yaw']
+    if latestButton == 0:
+        MANUAL_STATE = MANUAL_OFF
+    if latestButton & BTN_UP:
+        print("Button Up!")
+        desiredPitch = lamp['pitch'] + PITCH_INC
+##        if desiredPitch > mc.PITCH_UPPER_LIMIT or desiredPitch < mc.PITCH_LOWER_LIMIT:
+##            MANUAL_STATE = MANUAL_RUMBLE
+##        else:
+        MANUAL_STATE = MANUAL_ON
+    if latestButton & BTN_DOWN:
+        print("Button Down!")
+        desiredPitch = lamp['pitch'] - PITCH_INC
+##        if desiredPitch > mc.PITCH_UPPER_LIMIT or desiredPitch < mc.PITCH_LOWER_LIMIT:
+##            MANUAL_STATE = MANUAL_RUMBLE
+##        else:
+        MANUAL_STATE = MANUAL_ON
+    if latestButton & BTN_LEFT:
+        print("Button Left!")
+        desiredYaw = lamp['yaw'] - YAW_INC
+##        if desiredYaw > mc.YAW_UPPER_LIMIT or desiredYaw < mc.YAW_LOWER_LIMIT:
+##            MANUAL_STATE = MANUAL_RUMBLE
+##        else:
+        MANUAL_STATE = MANUAL_ON
+    if latestButton & BTN_RIGHT:
+        print("Button Right!")
+        desiredYaw = lamp['yaw'] + YAW_INC
+##        if desiredYaw > mc.YAW_UPPER_LIMIT or desiredYaw < mc.YAW_LOWER_LIMIT:
+##            MANUAL_STATE = MANUAL_RUMBLE
+##        else:
+        MANUAL_STATE = MANUAL_ON
+
+    if MANUAL_STATE == MANUAL_OFF:
+        pass
+    elif (desiredYaw > mc.YAW_UPPER_LIMIT or desiredYaw < mc.YAW_LOWER_LIMIT or
+        desiredPitch > mc.PITCH_UPPER_LIMIT or desiredPitch < mc.PITCH_LOWER_LIMIT):
+        MANUAL_STATE = MANUAL_RUMBLE
+    else:
+        MANUAL_STATE = MANUAL_ON
+        
+    if MANUAL_STATE == MANUAL_RUMBLE:
+        wiimote.rumble = True
+        return
+    elif MANUAL_STATE == MANUAL_OFF:
+        wiimote.rumble = False
+    elif MANUAL_STATE == MANUAL_ON:
+        wiimote.rumble = False
+        setPitch(desiredPitch)
+        setYaw(desiredYaw)
+        
+        print("desired pitch: %f") %(desiredPitch*rad2deg)
+        print("desired yaw: %f") %(desiredYaw*rad2deg)       
+        
+    
+"""
 Calculate all distances of points in list points and returns dictionary of form
     {(pointA, pointB): distance}
 """
@@ -52,7 +109,6 @@ def getDistances(points):
                 distances[(i, j)] = compute_distance(points[i], points[j])
             else:
                 distances[(i, j)] = float('inf')
-
 """
 Given temp_points, and indexA and indexB, find 
 point1, point2, point3, and point4
@@ -170,7 +226,30 @@ def calculate_CommandedPitchandYaw():
     print ('xSpot - %f, ySpot - %f, lampPitch - %f, lampYaw - %f' %(xSpot, ySpot, lampPitch*(180/math.pi), lampYaw*(180/math.pi)))
     return lampPitch, lampYaw
 
-    
+"""
+Set lamp Pitch through the motor controller
+"""
+def setPitch(desiredPitch):
+    pitchRate = int(math.ceil(abs(mc.MOVING_SF*((desiredPitch - lamp['pitch'])/SAMPLE_TIME))))
+    pitchCommand = mc.calculatePitchCommand(desiredPitch)
+
+    mc.pitch_rate(pitchRate)
+    mc.pitch_to(pitchCommand)
+
+    lamp['pitch'] = desiredPitch
+
+"""
+Set lamp Yaw through the motor controller
+"""
+def setYaw(desiredYaw):
+    yawRate = int(math.ceil(abs(mc.MOVING_SF*((desiredYaw - lamp['yaw'])/SAMPLE_TIME))))
+    yawCommand = mc.calculateYawCommand(desiredYaw)
+
+    mc.yaw_rate(yawRate)
+    mc.yaw_to(yawCommand)
+
+    lamp['yaw'] = desiredYaw
+
 """
 Compute distances between p1, p2 using distance formula
 """
@@ -192,16 +271,15 @@ def stateChart():
     global yaw_state
     global pitch_state
     points = getData()
-    #Returns sorted points list. If None, means invalid data
+    #Returns sorted points list. If None, means invalid data or running in manual mode
     if points == None:
         return
-
     try:
         update_userData(points)
     except:
         pass
 
-    return
+    #return
     com_pitch, com_yaw = calculate_CommandedPitchandYaw()
     pitch_diff = abs(com_pitch - lamp['pitch'])
     yaw_diff = abs(com_yaw - lamp['yaw'])
@@ -245,12 +323,12 @@ def stateChart():
 def callback_function(messages, time):
     global latestMessages
     global AUTO_MODE
-    #print("calledback!")
-    #print(arg1); print(arg2)
+    global latestButton
     latestMessages = messages
-    if wiimote.state['buttons'] == 8:
+    latestButton = wiimote.state['buttons']
+    if latestButton == cwiid.BTN_A:
         AUTO_MODE = False
-    if wiimote.state['buttons'] == 12:
+    if latestButton == cwiid.BTN_A + cwiid.BTN_B:
         AUTO_MODE = True
 
 """
@@ -261,9 +339,20 @@ YAW_TRACK = 1
 YAW_STAY = 2
 PITCH_TRACK = 3
 PITCH_STAY = 4
+MANUAL_OFF = 5
+MANUAL_ON = 6
+MANUAL_RUMBLE = 7
+MANUAL_STATE = MANUAL_OFF
+BTN_UP = 2048
+BTN_DOWN = 1024
+BTN_LEFT = 256
+BTN_RIGHT = 512
 
-AUTO_STATE = 1
-MANUAL_STATE = 2
+SAMPLE_TIME = 0.2
+#Manual Control Constants
+PITCH_INC = math.pi/4 * SAMPLE_TIME
+YAW_INC = math.pi/4 * SAMPLE_TIME
+
 
 #LED Configuration Params
 l_12 = 0.064
@@ -284,6 +373,7 @@ max_threshold_s = 45*math.pi/180
 min_threshold_s = 5*math.pi/180
 max_threshold_t = max_threshold_s * .5
 min_threshold_t = min_threshold_s * .5
+mc = motor_control.MotorController()
 print("Pairing..")
 wiimote = cwiid.Wiimote()
 print("Paired")
@@ -299,8 +389,9 @@ wiimote.enable(cwiid.FLAG_MESG_IFC)
 wiimote.rpt_mode = cwiid.RPT_IR | cwiid.RPT_BTN
 wiimote.mesg_callback = callback_function
 latestMessages = wiimote.get_mesg()
+latestButton = 0
 calibrate()
 while True:
     stateChart()
-    time.sleep(0.2)
+    time.sleep(SAMPLE_TIME)
 

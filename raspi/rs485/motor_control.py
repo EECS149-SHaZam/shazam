@@ -38,8 +38,8 @@ class MotorController(object):
     MIN_YAW = 50        # +90deg, left turn
     MAX_YAW = 664       # -90deg, right turn
     SF_YAW = (MAX_YAW - MIN_YAW)/math.pi # Scale factor for yaw commands
-    YAW_UPPER_LIMIT = math.pi
-    YAW_LOWER_LIMIT = -math.pi
+    YAW_UPPER_LIMIT = math.pi/2
+    YAW_LOWER_LIMIT = -math.pi/2
 
     MAX_MOVING_SPEED = 200
     MOVING_SF = 0.111*2*math.pi/60 #0.111rpm * 2pi = 0.6974rad/min = 0.0116 rad/s (per count)
@@ -65,6 +65,26 @@ class MotorController(object):
         yawCommand = cls.STRAIGHT_YAW - yawRad*cls.SF_YAW
 
         return int(pitchCommand), int(yawCommand)
+
+    @classmethod
+    def calculatePitchCommand(cls, pitchRad):
+        if pitchRad < cls.PITCH_LOWER_LIMIT:
+            pitch = cls.PITCH_LOWER_LIMIT
+        elif pitchRad > cls.PITCH_UPPER_LIMIT:
+            pitch = cls.PITCH_UPPER_LIMIT
+
+        pitchCommand = cls.MIN_PITCH - pitchRad*cls.SF_PITCH
+        return int(pitchCommand)
+
+    @classmethod
+    def calculateYawCommand(cls, yawRad):
+        if yawRad < cls.YAW_LOWER_LIMIT:
+            yawRad = cls.YAW_LOWER_LIMIT
+        elif yawRad > cls.YAW_UPPER_LIMIT:
+            yawRad = cls.YAW_UPPER_LIMIT
+
+        yawCommand = cls.STRAIGHT_YAW - yawRad*cls.SF_YAW
+        return int(yawCommand)
     
 
     yawId = 2
