@@ -91,6 +91,51 @@ class MotorController(object):
         #self.print_packet(full_packet)
         return full_packet
     
+    def pitch_to(self, pitch):
+        """Set the goal pitch."""
+        return self.send(
+                id=self.pitchId,
+                inst=self.INST_WRITE,
+                addr=self.Address.P_GOAL_POSITION,
+                values=self.split_int(pitch)
+        )
+    
+    def yaw_to(self, yaw):
+        """Set the goal yaw."""
+        return self.send(
+                id=self.yawId,
+                inst=self.INST_WRITE,
+                addr=self.Address.P_GOAL_POSITION,
+                values=self.split_int(yaw)
+        )
+    
+    def broadcast_rate(self, rate):
+        """Set the movement rate for all motors."""
+        return self.send(
+                id=self.broadcastId,
+                inst=self.INST_WRITE,
+                addr=self.Address.P_MOVING_SPEED,
+                values=self.split_int(rate)
+        )
+        
+    def pitch_rate(self, rate):
+        """Set the movement rate for pitch motor."""
+        return self.send(
+                id=self.pitchId,
+                inst=self.INST_WRITE,
+                addr=self.Address.P_MOVING_SPEED,
+                values=self.split_int(rate)
+        )
+        
+    def yaw_rate(self, rate):
+        """Set the movement rate for yaw motor."""
+        return self.send(
+                id=self.yawId,
+                inst=self.INST_WRITE,
+                addr=self.Address.P_MOVING_SPEED,
+                values=self.split_int(rate)
+        )
+        
     @staticmethod
     def checksum(packet):
         checksum = 0
