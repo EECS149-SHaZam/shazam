@@ -10,6 +10,8 @@ from utils import write
 
 if __name__ == "__main__":
     wm = connect()
+    time.sleep(1)
+    
     print("Counting...")
     for i in xrange(100):
         hx = i % 16
