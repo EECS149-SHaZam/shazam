@@ -3,6 +3,7 @@ import math
 from RPi import GPIO
 import time
 import datetime
+import sys
 
 class MotorController(object):
     class Address(object):
@@ -67,10 +68,7 @@ class MotorController(object):
     
     def __init__(self, device="/dev/ttyAMA0", baudrate=57600, timeout=3.0):
         self.port = serial.Serial(device, baudrate=baudrate, timeout=timeout)
-##        GPIO.setmode(GPIO.BOARD)
-##        GPIO.setup(11, GPIO.OUT)
-##        GPIO.output(11,True)
-
+        
     def send(self, id=0, inst=INST_WRITE, addr=0, values=bytearray()):
         if not isinstance(values, bytearray):
             values = bytearray(values)
@@ -165,7 +163,24 @@ class MotorController(object):
         lo = 0xff & i
         return [lo, hi]
         
+def enable_rts(verbose=True):
+    if verbose: print("Enabling RS-485 RTS...")
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(11, GPIO.OUT)
+    GPIO.output(11,True)
+    if verbose: print("RTS enabled!")
+
+def disable_rts(verbose=True):
+    if verbose: print("Disabling RS-485 RTS...")
+    GPIO.output(11, False)
+    if verbose: print("RTS disabled")
+    
+    
 if __name__ == "__main__":
+    if '--rts' in sys.argv:
+        enable_rts()
+        time.sleep(1)
+
     mc = MotorController()
     mc.send(id=mc.broadcastId, inst=mc.INST_WRITE, addr=mc.Address.P_MOVING_SPEED, values=mc.split_int(mc.MAX_MOVING_SPEED))
     #mc.send(id=mc.pitchId, inst=mc.INST_WRITE, addr=mc.Address.P_GOAL_POSITION, values=mc.split_int(mc.MAX_PITCH))
