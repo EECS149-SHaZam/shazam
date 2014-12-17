@@ -21,6 +21,19 @@ make install
 
 inside the `raspi` directory.
 
+If you want to make the robot start on boot, add this line to `/etc/rc.local`:
+
+```bash
+python /home/pi/shazam/raspi/startup.py &
+```
+
+And, add this line to `/home/pi/.bashrc`:
+
+```bash
+sudo killall python
+```
+
+If you reboot the pi, the robot will start at the login screen. Once you log in, the robot will be terminated.
 
 Hardware setup
 --------------
