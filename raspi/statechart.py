@@ -361,6 +361,7 @@ def callback_function(messages, time):
     global latestButton
     latestMessages = messages
     latestButton = wiimote.state['buttons']
+    # print latestButton
     if latestButton == cwiid.BTN_A:
         AUTO_MODE = False
         wiimote.led = 2 | 4
@@ -368,6 +369,10 @@ def callback_function(messages, time):
         AUTO_MODE = True
         wiimote.led = 1 | 8
         setPitch(0); setYaw(0)
+    if latestButton == 128:
+        import os
+        os.system('sudo halt')
+        exit(0)
 
 """
 Init
