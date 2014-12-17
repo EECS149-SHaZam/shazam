@@ -3,6 +3,7 @@ from statechart_class import Statechart, Messages
 from rs485 import MotorController
 from wiimote import connect, Lights, Buttons
 import cwiid
+import ir
 
 """
 Config
@@ -77,7 +78,9 @@ class MainStatechart(Statechart):
         """
         Collect data from the sensors for processing.
         """
-        self.inputs.messages.append(wiimote.get_mesg())
+        message = wiimote.get_mesg()
+        self.inputs.messages.append(message)
+        self.inputs.points = ir.update_inputs(self.inputs)
         
         def update_ir():
             """
@@ -116,7 +119,7 @@ class MainStatechart(Statechart):
             point1, point2, point3, point4 = 0, 0, 0, 0
             indexC = 0
             for i in range(0, len(temp_points)):
-                if i != indexA and i!= indexB:
+                if i != indexA and i != indexB:
                     indexC = i
                     break
             
@@ -265,6 +268,7 @@ class MainStatechart(Statechart):
         if self.inputs.buttons.a and self.inputs.buttons.b:
             self.state.auto = True
         
+    def perform_actions(self):
         if self.state.auto:
             Lights(self.wiimote).auto()
         else:
