@@ -69,41 +69,12 @@ class MainStatechart(Statechart):
         message = wiimote.get_mesg()
         self.inputs.messages.append(message)
         ir.update_inputs(self.inputs)
-        ir.update_state(self.inputs, self.state)
         
     def update_state(self):
         """
         Using self.inputs, write the values needed to make decisions to self.state.
         """
-        def calculate_CommandedPitchandYaw():
-            """
-            Calculate desired pitch and yaw based off of user and lamp data
-            """
-            # Spot offset from user
-            rOff = user['z']/math.tan(user['pitch']) * (-1)
-            xOff = rOff * math.cos(user['yaw']) * (-1)
-            yOff = rOff * math.sin(user['yaw'])
-
-            #Spot position in Global frame
-            xSpot = user['x'] + xOff
-            ySpot = user['y'] + yOff
-
-            #Spot offset from Lamp
-            xOffL = xSpot - lamp['x']
-            yOffL = ySpot - lamp['y']
-            rOffL = math.sqrt(xOffL*xOffL + yOffL*yOffL)
-
-            #Lamp Pitch and Yaw commands
-            lampPitch = math.atan2(lamp['z'], rOffL)
-            lampYaw = math.atan2(yOffL, xOffL)
-
-            print('xSpot - %f, ySpot - %f, lampPitch - %f, lampYaw - %f' % 
-                    (xSpot, ySpot, lampPitch*(180/math.pi), lampYaw*(180/math.pi))
-            )
-            return lampPitch, lampYaw
-        
-        if self.inputs.points:
-            points = self.inputs.points
+        ir.update_state(self.inputs, self.state)
         
         if self.inputs.buttons.a:
             self.state.auto = False
@@ -116,64 +87,6 @@ class MainStatechart(Statechart):
         else:
             Lights(self.wiimote).manual();
         
-
-def stateChart():
-    """
-    Performs state transitions, motor control
-    """
-    """
-    points = getData()
-    #Returns sorted points list. If None, means invalid data
-    if points == None:
-        return
-
-    try:
-        update_userData(points)
-    except:
-        pass
-
-    return
-    com_pitch, com_yaw = calculate_CommandedPitchandYaw()
-    pitch_diff = abs(com_pitch - lamp['pitch'])
-    yaw_diff = abs(com_yaw - lamp['yaw'])
-
-    #State transition logic
-    if yaw_state == YAW_STAY:
-        if yaw_diff > min_threshold_s or yaw_diff < max_threshold_s:
-            yaw_state = YAW_TRACK
-        else:
-            yaw_state = YAW_STAY
-    if yaw_state == YAW_TRACK:
-        if yaw_diff > min_threshold_t or yaw_diff < max_threshold_t:
-            yaw_state = YAW_TRACK
-        else:
-            yaw_state = YAW_STAY
-    
-    if pitch_state == PITCH_STAY:
-        if pitch_diff > min_threshold_s or pitch_diff < max_threshold_s:
-            pitch_state = PITCH_TRACK
-        else:
-            pitch_state = PITCH_STAY
-    if pitch_state == PITCH_TRACK:
-        if pitch_diff > min_threshold_t or pitch_diff < max_threshold_t:
-            pitch_state = PITCH_TRACK
-        else:
-            pitch_state = PITCH_STAY
-
-
-    #State Action logic. Command motors
-    if yaw_state == YAW_STAY:
-        pass
-    elif yaw_state == YAW_TRACK:
-        #Send commanded yaw angle
-        pass
-    if pitch_state == PITCH_STAY:
-        pass
-    elif pitch_state == PITCH_TRACK:
-        #Send commanded pitch angle
-        pass
-    """
-
 
 """
 Init

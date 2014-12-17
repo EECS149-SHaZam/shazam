@@ -90,8 +90,14 @@ def compute_distance(p1, p2):
     y = p1[1]-p2[1]
     return math.sqrt(math.pow(x, 2) + math.pow(y, 2))
 
-
 def update_state(inputs, state):
+    points = inputs.points
+    if not points:
+        return
+    update_state_user(inputs, state)
+    update_commanded_pitch_yaw(state)
+    
+def update_state_user(inputs, state):
     """
     Populates user dictionary with user's x, y, z position
     and pitch and roll
@@ -152,4 +158,35 @@ def update_state(inputs, state):
     user = state.user  # result
     user['x'], user['y'], user['z'] = x_u, y_u, z_u
     user['yaw'], user['pitch'] = psi_u, theta_u
+
+def update_commanded_pitch_yaw(state):
+    """
+    Calculate desired pitch and yaw based off of user and lamp data
+    """
+    user = state.user
+    lamp = state.lamp
+
+    # Spot offset from user
+    rOff = user['z']/math.tan(user['pitch']) * (-1)
+    xOff = rOff * math.cos(user['yaw']) * (-1)
+    yOff = rOff * math.sin(user['yaw'])
+
+    #Spot position in Global frame
+    xSpot = user['x'] + xOff
+    ySpot = user['y'] + yOff
+
+    #Spot offset from Lamp
+    xOffL = xSpot - lamp['x']
+    yOffL = ySpot - lamp['y']
+    rOffL = math.sqrt(xOffL*xOffL + yOffL*yOffL)
+
+    #Lamp Pitch and Yaw commands
+    lampPitch = math.atan2(lamp['z'], rOffL)
+    lampYaw = math.atan2(yOffL, xOffL)
+
+    print('xSpot - %f, ySpot - %f, lampPitch - %f, lampYaw - %f' % 
+            (xSpot, ySpot, lampPitch*rad2deg, lampYaw*rad2deg)
+    )
+    
+    state.pitch, state.yaw = lampPitch, lampYaw
 
