@@ -32,8 +32,6 @@ def update_inputs(inputs):
     
     inputs.points = [temp_points[point1], temp_points[point2], temp_points[point3], temp_points[point4]]
 
-    return inputs.points
-
 def findPoints(temp_points, indexA, indexB, distances):
     """
     Given temp_points, and indexA and indexB, find 

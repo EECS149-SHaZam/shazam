@@ -80,7 +80,7 @@ class MainStatechart(Statechart):
         """
         message = wiimote.get_mesg()
         self.inputs.messages.append(message)
-        self.inputs.points = ir.update_inputs(self.inputs)
+        ir.update_inputs(self.inputs)
         
         def update_userData(points):
             """
