@@ -367,6 +367,7 @@ def callback_function(messages, time):
     if latestButton == cwiid.BTN_A + cwiid.BTN_B:
         AUTO_MODE = True
         wiimote.led = 1 | 8
+        setPitch(0); setYaw(0)
 
 """
 Init
