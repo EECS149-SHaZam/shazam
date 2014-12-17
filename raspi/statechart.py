@@ -9,11 +9,13 @@ Read HID data from WiiMote and return list points of infrared positions
 """
 def getData():
     if not AUTO_MODE:
-        print "Manual mode enabeled"
+        if verbose:
+            print "Manual mode enabeled"
         manual_statechart()
         return None
     else:
-        print "Auto mode engaged"
+        if verbose:
+            print "Auto mode engaged"
     temp_points = [] #Unordered point data
     point1, point2, point3, point4 = 0, 0, 0, 0
     #Grab relevant data from Wii and put in temp_points
@@ -25,7 +27,8 @@ def getData():
         temp_points.append(msg['pos'])
                          
     if len(temp_points) != 4:
-        print ('Invalid temp point length %d' %temp_points)
+        if verbose:
+            print ('Invalid temp point length %d' %temp_points)
         return None
 
     #print messages
@@ -44,39 +47,45 @@ Manual mode state logic
 """
 def manual_statechart():
     global MANUAL_STATE
-    print "latest button is %d" %latestButton
+    if verbose:
+        print "latest button is %d" %latestButton
     desiredPitch, desiredYaw = lamp['pitch'], lamp['yaw']
     if latestButton == 0:
         MANUAL_STATE = MANUAL_OFF
     if latestButton & BTN_UP:
-        print("Button Up!")
+        if verbose:
+            print("Button Up!")
         desiredPitch = lamp['pitch'] + PITCH_INC
 ##        if desiredPitch > mc.PITCH_UPPER_LIMIT or desiredPitch < mc.PITCH_LOWER_LIMIT:
 ##            MANUAL_STATE = MANUAL_RUMBLE
 ##        else:
         MANUAL_STATE = MANUAL_ON
     if latestButton & BTN_DOWN:
-        print("Button Down!")
+        if verbose:
+            print("Button Down!")
         desiredPitch = lamp['pitch'] - PITCH_INC
 ##        if desiredPitch > mc.PITCH_UPPER_LIMIT or desiredPitch < mc.PITCH_LOWER_LIMIT:
 ##            MANUAL_STATE = MANUAL_RUMBLE
 ##        else:
         MANUAL_STATE = MANUAL_ON
     if latestButton & BTN_LEFT:
-        print("Button Left!")
+        if verbose:
+            print("Button Left!")
         desiredYaw = lamp['yaw'] - YAW_INC
 ##        if desiredYaw > mc.YAW_UPPER_LIMIT or desiredYaw < mc.YAW_LOWER_LIMIT:
 ##            MANUAL_STATE = MANUAL_RUMBLE
 ##        else:
         MANUAL_STATE = MANUAL_ON
     if latestButton & BTN_RIGHT:
-        print("Button Right!")
+        if verbose:
+            print("Button Right!")
         desiredYaw = lamp['yaw'] + YAW_INC
 ##        if desiredYaw > mc.YAW_UPPER_LIMIT or desiredYaw < mc.YAW_LOWER_LIMIT:
 ##            MANUAL_STATE = MANUAL_RUMBLE
 ##        else:
         MANUAL_STATE = MANUAL_ON
-    print "pitch %d yaw %d" %(desiredPitch, desiredYaw)
+    if verbose:
+        print "pitch %d yaw %d" %(desiredPitch, desiredYaw)
     if MANUAL_STATE == MANUAL_OFF:
         pass
     elif (desiredYaw > mc.YAW_UPPER_LIMIT or desiredYaw < mc.YAW_LOWER_LIMIT or
@@ -95,8 +104,9 @@ def manual_statechart():
         setPitch(desiredPitch)
         setYaw(desiredYaw)
         
-        print("desired pitch: %f") %(desiredPitch*rad2deg)
-        print("desired yaw: %f") %(desiredYaw*rad2deg)       
+        if verbose:
+            print("desired pitch: %f") %(desiredPitch*rad2deg)
+            print("desired yaw: %f") %(desiredYaw*rad2deg)       
         
     
 """
@@ -235,7 +245,8 @@ def calculate_CommandedPitchandYaw():
     lampYaw = math.atan2(yOffL, xOffL)
 
     #print ('xOffL - %f, yOffL - %f, lampPitch - %f, lampYaw - %f' %(xOffL, yOffL, lampPitch*rad2deg, lampYaw*rad2deg))
-    print "lampPitch: %f, lampYaw: %f" %(lampPitch*rad2deg, lampYaw*rad2deg)
+    if verbose:
+        print "lampPitch: %f, lampYaw: %f" %(lampPitch*rad2deg, lampYaw*rad2deg)
     return lampPitch, lampYaw
 
 """
@@ -253,7 +264,8 @@ def setPitch(desiredPitch):
     mc.pitch_to(pitchCommand)
 
     lamp['pitch'] = pitchLimited
-    print "pitchLimited %f" %(pitchLimited*rad2deg)
+    if verbose:
+        print "pitchLimited %f" %(pitchLimited*rad2deg)
 
 """
 Set lamp Yaw through the motor controller
@@ -270,7 +282,8 @@ def setYaw(desiredYaw):
     mc.yaw_to(yawCommand)
 
     lamp['yaw'] = yawLimited
-    print "yawLimited %f" %(yawLimited*rad2deg)
+    if verbose:
+        print "yawLimited %f" %(yawLimited*rad2deg)
 
 """
 Compute distances between p1, p2 using distance formula
@@ -432,9 +445,13 @@ def deploy(wm, motor_controller):
     mc = motor_controller
     run()
 
+verbose = False
 if __name__ == "__main__":
+    verbose = True
     mc = motor_control.MotorController()
-    print("Pairing..")
+    if verbose:
+        print("Pairing..")
     wiimote = cwiid.Wiimote()
-    print("Paired")
+    if verbose:
+        print("Paired")
     deploy(mc, wiimote)

@@ -10,8 +10,8 @@ def blink_rts():
     enable_rts(False)
 
 
-enable_rts()
-wm = connect_loop(fail_callback=blink_rts)
+enable_rts(verbose=False)
+wm = connect_loop(fail_callback=blink_rts, verbose=False)
 mc = MotorController()
 statechart.deploy(wm, mc)
 
