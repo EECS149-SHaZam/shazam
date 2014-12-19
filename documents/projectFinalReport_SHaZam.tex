@@ -512,17 +512,28 @@ The goal of this project is to design a lamp that will redirect its light to fol
 \end{figure}
 
 \section{Project Components}
+\subsection{Hardware}
+The hardware consists of a gimbal-mounted flashlight connected to a system controller, in turn connected wirelessly to a Wiimote, which tracks sensor bars mounted on the user's hat.
+
+The gimbal is a pair of Dynamixel \mbox{RX-24F} smart servos, which are daisy-chained and connected to the system controller via \mbox{RS-485} serial link. To convert the \mbox{RS-485} to 3.3V serial UART, we used an SP3485 breakout board.
+
+The system controller is a Raspberry Pi running Raspbian Linux in ``headless'' configuration, without a monitor, keyboard or mouse. These can be added for development and debugging, or an ethernet connection can be used to log in remotely via SSH.
+
+The system controller links to the WiiMote via a USB Bluetooth dongle. (Somehow, we had issues with newer Wiimotes that included MotionPlus, so we used an older Wiimote without it.) The WiiBrew web site \footnote{http://wiibrew.org/wiki/Wiimote} was a valuable resource in understanding the Wiimote hardware and in interfacing the Wiimote with the system controller.
+
+The hat has two Wii ``sensor bars'' mounted to it. These bars are not sensors at all, but actually contain a simple collection of IR LEDs at either end of each. The specially-designed camera in the Wiimote picks up and tracks these four points of invisible light. For more information about the sensor bars' asymmetrical configuration, see the \ref{sec:algorithms} section.
+
 \subsection{Design changes}
 Although the overall structure and linkages of our system diagram have not changed since the beginning of our project, virtually every block was modified by the end of development.
 
 \subsubsection{Gimbal}
-Our original design called for traditional servo motors to drive the gimbal's motion, but we decided to change to advanced, serially-controlled servos. These Dynamixel RX-24F motors (see Figure \ref{fig:hw_mk0}) provided several advantages, the primary one being ease of control.
+Our original design called for traditional servo motors to drive the gimbal's motion, but we decided to change to advanced, serially-controlled servos. These Dynamixel \mbox{RX-24F} motors (see Figure \ref{fig:hw_mk0}) provided several advantages, the primary one being ease of control.
 
-Unlike traditional servo motors which are commanded to set their position using PWM, our smart servos could be commanded via RS-485 serial link. This provides more timing flexibility in our control logic, since this makes PWM interrupt routines unnecessary. The smart servos also allowed us to set the speed of the movements over the serial link, offloading logic from our main control loop to the motors.
+Unlike traditional servo motors which are commanded to set their position using PWM, our smart servos could be commanded via \mbox{RS-485} serial link. This provides more timing flexibility in our control logic, since this makes PWM interrupt routines unnecessary. The smart servos also allowed us to set the speed of the movements over the serial link, offloading logic from our main control loop to the motors.
 
 Also, the new servos were daisy-chainable, an impossibility with PWM. This allowed us to use a single serial output, as opposed to multiple, independent PWM outputs, each with their own interrupt routines. This resulted in a subtantial time savings in development, and greater reliability.
 
-A disadvantage was that RS-485 is quite different from serial UART, in that it uses 200 mV differential signaling over two wires and is half-duplex, whereas our TTL UART operates at 3.3V and is full-duplex. We used a breakout board for the SP3485, which accomplishes both level conversion and protocol translation, with the aid of an RTS signal from our system controller.
+A disadvantage was that \mbox{RS-485} is quite different from serial UART, in that it uses \mbox{200 mV} differential signaling over two wires and is half-duplex, whereas our TTL UART operates at 3.3V and is full-duplex. We used a breakout board for the SP3485, which accomplishes both level conversion and protocol translation, with the aid of an RTS signal from our system controller.
 
 \subsubsection{Bluetooth}
 Originally, we were going to use a BlueSMiRF Gold to connect to the WiiMote. However, the Gold only connects via serial data endpoints, while the WiiMote requires an HID interface. So, the BlueSMiRF Gold did not work.
@@ -532,15 +543,13 @@ To resolve this problem, we purchased a BlueSMiRF HID, which has the same hardwa
 In the end, we used a USB-Bluetooth dongle.
 
 \subsubsection{System controller}
-Although we originally intended to use the ARM mbed FRDM-KL25Z Freedom board, we decided to change platforms to the Raspberry Pi model B.
+Although we originally intended to use the ARM mbed \mbox{FRDM-KL25Z} Freedom board, we decided to change platforms to the Raspberry Pi model B.
 
 We did not use the Pi initially because the lab already provided each of our group members with a free, personal ARM mbed processor. This allowed us to work independently, parallelizing development. In comparison, the Pi cost \$35. Also, PWM control requires Linux kernel programming on the Pi, or a separate daughterboard with its own microprocessor, such as the Arduino-compatible Pi Alamode (another \$35). We deemed this too complex and expensive.
 
 However, circumstances changed later in the development. By switching to the serial servos, we eliminated the need for kernel development or a daughterboard. Just like with the ARM mbed, we could now control all the hardware with a single system controller. Also, when we exchanged the BlueSMiRF for the Bluetooth dongle, the easily-installed support for the dongle in Linux gave the Pi a clear advantage over the ARM mbed, which in contrast required compiling and integrating C++ code. The Pi was simpler.
 
-The Pi also offered new capabilities not available on ARM mbed. 
-
-With the Pi, we could change languages from C++ to Python, and we could develop and test directly on the Pi itself. This meant no more waiting for compilation and flashing every time we made a change. It also gave us an interactive Python shell to test out snippets of code prior to integration. 
+The Pi also offered new capabilities not available on ARM mbed. With the Pi, we could change languages from C++ to Python, and we could develop and test directly on the Pi itself. This eliminated the need for compilation and flashing every time we made a change. It also gave us an interactive Python shell to test out snippets of code prior to integration.
 
 Next was the ethernet connection on the Pi. Connected to a LAN, multiple members could work simultaneously on the Pi via SSH. Also, with an internet connection, we could use package managers to quickly install and test pre-built third-party modules for new Linux and Python functionality. The internet also gave us tighter integration with GitHub for version tracking and merging our code modifications. The confidence that we could quickly revert our changes allowed rapid progress even as the deadline approached.
 
