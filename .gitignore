@@ -1,6 +1,21 @@
+# General noise
 .DS_Store
+*.swp
+
+# C/C++
 *.o
 *.d
 *.elf
 *.hex
 *.map
+
+# Python
+*.pyc
+*.pyinfo
+
+# TeX
+*.lb
+*.aux
+*.log
+*.synctex.gz
+
