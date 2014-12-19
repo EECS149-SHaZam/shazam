@@ -500,7 +500,7 @@ Edward Zhao}
 %% (should never be an issue)
 %I wish you the best of success.
 
-The goal of this project is to design a lamp that will redirect its light to follow a user's gaze. The magic lamp will consist of a standard adjustable desk lamp with a microcontroller embedded in its base and servo motors connected to its light source. Additionally, the lamp will utilize a WiiMote to track IR LEDs affixed to the user's face or hat. The WiiMote will communicate relative positioning data to the microcontroller via Bluetooth, which will in turn direct the motors to aim the light source. The controller will behave according to a state-machine that models states such as ``Track'' or ``Stay.'' Figure \ref{fig:conops} shows the logical connections between system components and how they are intended to interact.
+The goal of this project is to design a lamp that will redirect its light to follow a user's gaze. The magic lamp will consist of a standard adjustable desk lamp with a microcontroller embedded in its base and servo motors connected to its light source. Additionally, the lamp will utilize a Wiimote to track IR LEDs affixed to the user's face or hat. The Wiimote will communicate relative positioning data to the microcontroller via Bluetooth, which will in turn direct the motors to aim the light source. The controller will behave according to a state-machine that models states such as ``Track'' or ``Stay.'' Figure \ref{fig:conops} shows the logical connections between system components and how they are intended to interact.
 
 \begin{figure}[!t]
 \begin{center}
@@ -511,61 +511,15 @@ The goal of this project is to design a lamp that will redirect its light to fol
 \label{fig:conops}
 \end{figure}
 
-\section{Modeling and Algorithms}
-\label{sec:algorithms}
-We have developed a finite state machine that models the behavior we want for our project, as well as mathematical models detailing our tracking algorithm.
- 
- \subsection{FSM System Model}
- The SHaZam system can be modeled as a hierarchical composition of state machines. At the highest level (shown in Figure \ref{fig:high_state}) the system starts by looking to pair via Bluetooth with a WiiMote (
- 
-For our state machine, we have two main states, ``On'' and ``Off.'' Within the On state, we have two sub state machines, one dedicated to pitch, and one dedicated to yaw, to control the respective servo motors. Inside the pitch and the yaw submachines we have three further substates; ``Calibrate,'' ``Stay,'' and ``Track''. Figure \ref{fig:pitch_state} illustrates the flow between these states within the pitch sub state machine. Within the Calibrate state, we want to standardize our measurements before beginning any tracking. This state will act as an initialization state and will only execute once. Then, depending on the angle of the user's head, we will either move to and remain in the Stay state or advance through to the Track state, which begins moving the servo motor in accordance to the user's head movements. We have designed guards to avoid actuating the motors when the user may not intend for his motion to be tracked by SHaZam. To this end, we set minimum and maximum limits on the change in desired lamp orientation (based on change in user head position) to which the system will respond. Note that these are not instantaneous changes, but the change over our fixed software sample time (0.2 seconds).
-
-\subsection{User State Estimation}
-We have also derived a mathematical model that will allow us to reconstuct the state of the LED configuration (which reveals where the user is looking) by obtaining angular position measurements from the WiiMote.\footnote{This model is an expansion of work done by Johnny Chung Lee (Google, formerly CMU). See http://johnnylee.net/projects/wii/} The data provided are x- and y-angle measurements, corresponding to the estimated angular position of the LEDs in two orthogonal planes. Figure \ref{fig:geometry} shows the geometry of reconstructing the state in one of these measurement planes. Note that the state of the LEDs in a plane has three degrees of freedom (shown in Figure \ref{fig:geometry} as $x_{user}$, $y_{user}$, and $\psi_{user}$), so three angular measurements are needed to unambiguously reconstruct the state. Once the state in the first plane is known, however, the range data ($v$) is known for the second plane as well, so only two angular measurements are needed to reconstruct the state relative to the second plane. 
-
-\subsection{Command Generation}
-Given the user's head position (x,y,z) and orientation (pitch $\theta$ and yaw $\psi$), we could then use a second algorithm to calculate where the user's line of sight would intersect with the surface of the table upon which the SHaZam system was placed. Once that location was known, it was then possible to calculate the required pitch and yaw of the lamp to shine a light such that it would also intersect the table at that same location.
-
-\subsection{Verification and Testing}
-In order to verify the accuracy of these solutions, we created a simple model of the system in MATLAB that allowed us to specify user state data (angular and positional state), determine where the LEDs would appear relative to the WiiMote camera, and use that data to drive our state estimation and command generation algorithms. After successfully recreating our input state data based on expected measurements, the simulation indicated that we had derived an exact solution to the problem. However, upon running our algorithm using actual data collected by the WiiMote, we soon discovered that even in a static configuration (minimal motion of the WiiMote and the LEDs) the estimated angular state of the user exhibited large variations that would give erratic data to the command generation algorithm, and would have resulted in extraneous lamp motion.
-
-\subsection{Managing Noisy Data}
-While the estimated angular state of the user was determined to be unusable (varying by tens of degrees), the estimated user position was notably more stable (varying on the order of one or two centimeters). It was therefore decided to re-scope our design to focus on directing the lamp at the user themselves. This change was accomplished without significant variation to our existing state estimation algorithm (we were already estimating positional data) or our command generation algorithm (we substituted the user's head position for the position of their gaze upon the table). To further ensure that the motors would not be commanded to move erratically, we tuned the angular change thresholds used in our state machine to allow the motors to respond to meaningful small changes while ignoring extraneous large changes which may be caused by measurement anomalies. Future implementations may consider applying various filtering schemes to smooth out state estimates and acheive gaze tracking capability.
-
-\subsection{Manual Mode}
-Operating the system in manual mode proved to be more straightforward as it did not rely on camera measurements taken by the WiiMote. In this mode, directional input from the WiiMote D-pad was used to increment or decrement the pitch or yaw of the motor assembly. If the user tried to command either a pitch or yaw angle that was outside of the designed range of motion, the command would not be executed and the WiiMote would rumble to alert the user to the fact that they had reached the system bounds.
-
-\begin{figure}
-\begin{center}
-    \begin{subfigure}[b]{0.3\linewidth}
-    \begin{center}
-    \includegraphics[width=0.7\linewidth]{../images/pitch_state2}
-    \caption{subfigure caption}
-    \end{center}
-    \end{subfigure}
-\end{center}
-
-\caption{State Machine. The state machine controlling the motors' pitch orientation is designed with three states: ``Calibration,'' ``Stay,'' and ``Track.'' Note that there will be thresholds to prevent undesired tracking. The control for yaw follows an identical model}
-\label{fig:pitch_state}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=\linewidth]{../images/geometry_and_equations_update}
-\end{center}
-
-\caption{State Reconstruction. By obtaining angular position measurements of three LEDs with known offsets, it is possible to fully reconstruct the state in a plane. Range data ($v$) obtained from one plane of measurement can be applied to aid state reconstruction in the other}
-\label{fig:geometry}
-\end{figure}
-
 \section{Hardware}
+\label{sec:hardware}
 The hardware consists of a gimbal-mounted flashlight connected to a system controller, in turn connected wirelessly to a Wiimote, which tracks sensor bars mounted on the user's hat.
 
 The gimbal is a pair of Dynamixel \mbox{RX-24F} smart servos, which are daisy-chained and connected to the system controller via \mbox{RS-485} serial link. To convert the \mbox{RS-485} to 3.3V serial UART, we used an SP3485 breakout board.
 
 The system controller is a Raspberry Pi running Raspbian Linux in ``headless'' configuration, without a monitor, keyboard or mouse. These can be added for development and debugging, or an ethernet connection can be used to log in remotely via SSH.
 
-The system controller links to the WiiMote via a USB Bluetooth dongle. (Somehow, we had issues with newer Wiimotes that included MotionPlus, so we used an older Wiimote without it.) The WiiBrew web site \footnote{http://wiibrew.org/wiki/Wiimote} was a valuable resource in understanding the Wiimote hardware and in interfacing the Wiimote with the system controller.
+The system controller links to the Wiimote via a USB Bluetooth dongle. (Somehow, we had issues with newer Wiimotes that included MotionPlus, so we used an older Wiimote without it.) The WiiBrew web site \footnote{http://wiibrew.org/wiki/Wiimote} was a valuable resource in understanding the Wiimote hardware and in interfacing the Wiimote with the system controller.
 
 The hat has two Wii ``sensor bars'' mounted to it. These bars are not sensors at all, but actually contain a simple collection of IR LEDs at either end of each. The specially-designed camera in the Wiimote picks up and tracks these four points of invisible light. For more information about the sensor bars' asymmetrical configuration, see section \ref{sec:algorithms}.
 
@@ -582,7 +536,7 @@ Also, the new servos were daisy-chainable, an impossibility with PWM. This allow
 A disadvantage was that \mbox{RS-485} is quite different from serial UART, in that it uses \mbox{200 mV} differential signaling over two wires and is half-duplex, whereas our TTL UART operates at 3.3V and is full-duplex. We used a breakout board for the SP3485, which accomplishes both level conversion and protocol translation, with the aid of an RTS signal from our system controller.
 
 \subsubsection{Bluetooth}
-Originally, we were going to use a BlueSMiRF Gold to connect to the WiiMote. However, the Gold only connects via serial data endpoints, while the WiiMote requires an HID interface. So, the BlueSMiRF Gold did not work.
+Originally, we were going to use a BlueSMiRF Gold to connect to the Wiimote. However, the Gold only connects via serial data endpoints, while the Wiimote requires an HID interface. So, the BlueSMiRF Gold did not work.
 
 To resolve this problem, we purchased a BlueSMiRF HID, which has the same hardware as the BlueSMiRF Gold, but has different factory-flashed firmware for HID capabilities. This also did not work, because the BlueSMiRF HID was designed to operate as an HID slave device, such as a mouse, keyboard or joystick; it could not operate as an HID host, to control such HID devices.
 
@@ -606,7 +560,7 @@ Next was the ethernet connection on the Pi. Connected to a LAN, multiple members
 \includegraphics[width=\linewidth]{../images/shazam_outer2}
 \end{center}
 
-\caption{SHaZam External Hardware. On the left, the main console with a protruding WiiMote camera and a Dynamixel 2-axis motor assembly with an attached flashlight. On the right, the head-mounted IR LED assembly for user wear.}
+\caption{SHaZam External Hardware. On the left, the main console with a protruding Wiimote camera and a Dynamixel 2-axis motor assembly with an attached flashlight. On the right, the head-mounted IR LED assembly for user wear.}
 \label{fig:hw_mk0}
 \end{figure}
 
@@ -615,23 +569,97 @@ Next was the ethernet connection on the Pi. Connected to a LAN, multiple members
 \includegraphics[width=0.8\linewidth]{../images/shazam_inner}
 \end{center}
 
-\caption{SHaZam Internal Hardware.Clockwise, from top: WiiMote, Sparkfun RS485 breakout board, Raspberry Pi with attached Bluetooth dongle, USB power module for the Raspberry Pi, Battery assembly (8 AA) for powering motors.}
+\caption{SHaZam Internal Hardware.Clockwise, from top: Wiimote, Sparkfun RS485 breakout board, Raspberry Pi with attached Bluetooth dongle, USB power module for the Raspberry Pi, Battery assembly (8 AA) for powering motors.}
 \label{fig:hw_inner}
 \end{figure}
 
 \section{Software}
-On the Raspberry Pi platform, we opted to utilize Python as our language of choice. The reason for that is twofold; the first is that there is an extensive library called CWiiD\footnote{CWiiD was developed by Donnie Smith of Georgia Tech - https://github.com/abstrakraft/cwiid}, which provided a robust API to interface with the WiiMote. The second reason was that with the power of the Pi, and its full blown Linux capability, we wanted to use a Python that we were much more comfortable in and would be easier to debug in, cutting down development time by significant margins. 
+On the Raspberry Pi platform, we opted to utilize Python as our language of choice. The reason for that is twofold; the first is that there is an extensive library called CWiiD\footnote{CWiiD was developed by Donnie Smith of Georgia Tech - https://github.com/abstrakraft/cwiid}, which provided a robust API to interface with the Wiimote. The second reason was that, once we had decided to use the Pi and its full Linux capability (see section \ref{sec:hardware}), we wanted to use a language with which we had more experience coding and debugging, cutting down development time by significant margins. 
 
-In the actual code, the main logic resides in statechart.py. The state machine logic, connection to the WiiMote via CWiiD, and sample logic all reside in this file. Essentially, we run a while loop, sampling every .2 seconds for IR position data. Based on this data, we used the above modeling algorithms find the appropriate pitch and yaw angle, then move the motors to that angle. We had to introduce a wrinkle of asynchronous behavior, by taking advantage of callback functions. Essentially, once set up, CWiiD receives messages with positional data and button status data continuously. However, periodically polling the WiiMote with the get\_mesg() method yields only the oldest undelived data, which was not sufficient for our purposes. So, with a callback set, everytime a new message came in, we update our data points, so the most up to date values are available when we sample. We also keep track of what buttons are being pressed within the callback function. For instance, if we detect button A being pressed, we immediately go into Manual Mode, which would not be possible in a purely synchronous fashion. 
+In the actual code, the main logic resides in statechart.py. The state machine logic, connection to the Wiimote via CWiiD, and sample logic all reside in this file. Essentially, we run a while loop, sampling every 0.2 seconds for IR position data. Based on this data, we used the modeling algorithms (described in section \ref{sec:algorithms} to find the appropriate pitch and yaw angle, then move the motors to that angle. We had to introduce a wrinkle of asynchronous behavior, by taking advantage of callback functions. Essentially, once set up, CWiiD receives messages with positional data and button status data continuously. However, periodically polling the Wiimote with the get\_mesg() method yields only the oldest undelived data, which was not sufficient for our purposes. So, with a callback set, everytime a new message came in, we update our data points, so the most up to date values are available when we sample. We also keep track of what buttons are being pressed within the callback function. For instance, if we detect button A being pressed, we immediately go into Manual Mode, which would not be possible in a purely synchronous fashion. 
 
-We import a file in statechart called motor\_control. Like the name suggests, motor\_control.py is responsible for controlling the motors. Once the desired pitch and yaw commands are calculated in statechart.py, and deemed to be within the designed range of motion, they are passed into motor\_control.py. Motor\_control.py then takes this data, and calculates the difference between the desired pitch and yaw and its current pitch and yaw, and finds the necessary speed needed to reconcile that difference. Once this is calculated, motor\_control.py constructs a serial packet, which sent to the RS485 converter. Within the motors, the new data supplants the preexisting values in memory, allowing the motors to "track" the user.
+We import a file in statechart called motor\_control. Like the name suggests, motor\_control.py is responsible for controlling the motors. Once the desired pitch and yaw commands are calculated in statechart.py, and deemed to be within the designed range of motion, they are passed into motor\_control.py. Motor\_control.py then takes this data, and calculates the difference between the desired pitch and yaw and its current pitch and yaw, and finds the necessary speed needed to reconcile that difference. Once this is calculated, motor\_control.py constructs a serial packet, which sent to the RS485 converter. Within the motors, the new data supplants the preexisting values in memory, allowing the motors to ``track" the user.
 
+\section{Modeling and Algorithms}
+\label{sec:algorithms}
+We developed a finite state machine that models the behavior we want for our project, as well as mathematical models detailing our tracking algorithm.
+ 
+ \subsection{FSM System Model}
+ The SHaZam system can be modeled as a hierarchical composition of state machines. At the highest level (shown in Figure \ref{fig:high_state}) the system starts by looking to pair via Bluetooth with a Wiimote (state BLUETOOTH\_PAIRING), and continues doing so until it successfully pairs. This is the state first entered when the sytem is turned on.
+ 
+ Once paired, the system will transition to AUTO mode, which enables tracking of the user position. Within AUTO, there are two identical yet separate state machines for controlling the motors pitch and yaw. Figure \ref{fig:auto_state} shows the FSM model for these machines. The system begins in the STAY state for both angular axes. For a given axis, if the motor are commanded to change its angle by a value which is within our accepted bounds (described in the figure as the range between minThresh and maxThresh) then the system transitions to TRACK and the lamp will be reoriented to point at the appropriate location. If the angular command falls outside of this range, that command is ignored and the system remains in STAY (in this case, the calculated command is never actually sent to the motors). Once in TRACK, if the change in angle is below minThresh (the desired lamp position has settled) or the change is above maxThresh (likely due to an errant measurement), then the system returns to STAY and holds its position.
+ 
+If the user pushes the ``A'' button on the Wiimote, the system will transition into MANUAL (the manual mode is represented in Figure \ref{fig:manual_state}). This sub-state machine follows a similar model to AUTO in that it also transitions back and forth between a stationary state (NotButtonPress) and a moving state (ButtonPressed). As the state names suggest, the transition is triggered by the pressing or releasing of buttons on the Wiimote. In ButtonPressed, the change in motor position is determined by which button is being pressed, and at every time increment (recall that our sample time is 0.2 seconds) the appropriate change occurs. Unlike AUTO, MANUAL has a third state, labeled Rumble. When a button is pressed that would have commanded the system to move beyond its designed range of motion, the system transitions to Rumble in lieu of ButtonPressed. In Rumble, the system remains stationary and vibrates to alert the user that they have reached the bounds of motion.
 
+Finally, if the user presses ``A'' and ``B'' simultaneously on the Wiimote, the system will transition from MANUAL back to AUTO, allowing the user to change between these two modes of operation at their discretion.
+
+\subsection{User State Estimation}
+We have also derived a mathematical model that will allow us to reconstuct the state of the LED configuration (which reveals where the user is looking) by obtaining angular position measurements from the Wiimote.\footnote{This model is an expansion of work done by Johnny Chung Lee (Google, formerly CMU). See http://johnnylee.net/projects/wii/} The data provided are x- and y-angle measurements, corresponding to the estimated angular position of the LEDs in two orthogonal planes. Figure \ref{fig:geometry} shows the geometry of reconstructing the state in one of these measurement planes. Note that the state of the LEDs in a plane has three degrees of freedom (shown in Figure \ref{fig:geometry} as $x_{3}$, $y_{3}$, and $\psi_{user}$), so three angular measurements are needed to unambiguously reconstruct the state. Once the state in the first plane is known, however, the range data ($v$) is known for the second plane as well, so only two angular measurements are needed to reconstruct the state relative to the second plane. 
+
+\subsection{Command Generation}
+Given the user's head position (x,y,z) and orientation (pitch $\theta$ and yaw $\psi$), we could then use a second algorithm to calculate where the user's line of sight would intersect with the surface of the table upon which the SHaZam system was placed. Once that location was known, it was then possible to calculate the required pitch and yaw of the lamp to shine a light such that it would also intersect the table at that same location. This process of calculating the intersection location based on user angles and then the required lamp angles based on the intersection location was accomplished using standard trigonometric and inverse trigonometric functions.
+
+\subsection{Verification and Testing}
+In order to verify the accuracy of these solutions, we created a simple model of the system in MATLAB that allowed us to specify user state data (angular and positional state), determine where the LEDs would appear relative to the Wiimote camera, and use that data to drive our state estimation and command generation algorithms. After successfully recreating our input state data based on expected measurements, the simulation indicated that we had derived an exact solution to the problem. However, upon running our algorithm using actual data collected by the Wiimote, we soon discovered that even in a static configuration (minimal motion of the Wiimote and the LEDs) the estimated angular state of the user exhibited large variations that would give erratic data to the command generation algorithm, and would have resulted in extraneous lamp motion.
+
+\subsection{Managing Noisy Data}
+While the estimated angular state of the user was determined to be unusable (varying by tens of degrees), the estimated user position was notably more stable (varying on the order of one or two centimeters). It was therefore decided to re-scope our design to focus on directing the lamp at the user themselves. This change was accomplished without significant variation to our existing state estimation algorithm (we were already estimating positional data) or our command generation algorithm (we substituted the user's head position for the position of their gaze upon the table). To further ensure that the motors would not be commanded to move erratically, we tuned the angular change thresholds used in our state machine to allow the motors to respond to meaningful small changes while ignoring extraneous large changes which may be caused by measurement anomalies. Future implementations may consider applying various filtering schemes to smooth out state estimates and acheive gaze tracking capability.
+
+\subsection{Manual Mode}
+Operating the system in manual mode proved to be more straightforward as it did not rely on camera measurements taken by the Wiimote. In this mode, directional input from the Wiimote D-pad was used to increment or decrement the pitch or yaw of the motor assembly. If the user tried to command either a pitch or yaw angle that was outside of the designed range of motion, the command would not be executed and the Wiimote would rumble to alert the user to the fact that they had reached the system bounds.
+
+\begin{figure}
+\begin{center}
+    \begin{subfigure}[b]{0.7\linewidth}
+    \begin{center}
+    \includegraphics[width=1\linewidth]{../images/high_state}
+    \caption{Top-level state machine model}
+    \label{fig:high_state}
+    \end{center}
+    \end{subfigure}
+    
+    \vspace{0.05\linewidth}
+    
+    \begin{subfigure}[b]{0.7\linewidth}
+    \begin{center}
+    \includegraphics[width=1\linewidth]{../images/auto}
+    \caption{Automated mode state machine model}
+    \label{fig:auto_state}
+    \end{center}
+    \end{subfigure}
+    
+    \vspace{0.05\linewidth}
+    
+    \begin{subfigure}[b]{0.7\linewidth}
+    \begin{center}
+    \includegraphics[width=1\linewidth]{../images/manual}
+    \caption{Manual mode state machine model}
+     \label{fig:manual_state}
+    \end{center}
+    \end{subfigure}
+\end{center}
+
+\caption{State Machines. The system is modeled as a hierarchical composition of state machines}
+\label{fig:state_machines}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\linewidth]{../images/geometry_and_equations_update}
+\end{center}
+
+\caption{State Reconstruction. By obtaining angular position measurements of three LEDs with known offsets, it is possible to fully reconstruct the state in a plane. Range data ($x_3$) obtained from one plane of measurement can be applied to aid state reconstruction in the other}
+\label{fig:geometry}
+\end{figure}
 
 \section{Path Forward}
-At this point in the project, we believe that we have all of the basic components to successfully implement our design. With the new BlueSMiRF module in hand,  we will move forward with creating and testing the necessary software to collect data from the WiiMote on the mbed processor. In parallel, we will use the USB2Dynamixel to move forward prototyping motor control from a laptop. Once motor control functionality is established, the SparkFun board should enable the same control from the mbed, serving as a means to convert data from the mbed UART into the RS-458 format required by the Dynamixel motors.
+Originally, our project was designed such that the light would track the user's gaze, down to where he or she was looking at the desk. However, our algorithm proved too unstable for this task, so we reduced the problem to having the light simply follow the user. Moving forward, we would like to explore more robust algorithms to solve the original problem. 
 
-In addition to continuing to develop our electronics interfaces, we will also iterate on the designs of user-facing components. We will look to create a more comfortable but less mutable fixed LED array for the user to wear so that the distances between LEDs can be better characterized. Finally, the motor assembly will be mounted on a lamp-like frame to enable the desired experience for the user.
+In addition, the original algorithm uses trigonometric calculations as its basis, to find the appropriate pitch and yaw to move the motors. However, we could explore other options of tracking the user's face. For instance, if we used the Wiimote's internal accelerometer, we could get a grasp of what the user's head movements are, to supplement the existing algorithms that we had. Furthermore, we could look into facial tracking or eyetracking, or take it to the next level by investigating computer vision as a way to solve this problem. These solutions would add to the featureset as well as provide more accurate, more stable, and more definitive means towards tracking the user.
+
+Another aspect that we could improve on is our physical design. Right now, the design is esoteric and unintuitive. The LED bars are mounted on cardboard taped to a hat, and our components are housed in a cardboard box. Moving forward, we would investigate the use of individual LED lights, so that the headgear is much more compact and usable. We would also strive to improve SHaZam such that the user can start it up and enjoy its features with the push of a button. Ultimately, while there is much room for improvement, we believe we have established a solid starting point with our work. 
+
+
 
 %\hfill mds
 % 
