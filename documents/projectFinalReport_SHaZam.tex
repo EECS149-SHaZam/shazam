@@ -511,18 +511,38 @@ The goal of this project is to design a lamp that will redirect its light to fol
 \label{fig:conops}
 \end{figure}
 
-\section{Project Milestones}
-\subsection{Hardware}
-The microcontroller to be used for this project will be the mbed FRDM-KL25Z Freedom board. All team members possess their own board, and all have successfully demonstrated the ability to build and execute programs for the microcontroller in their own development environments, which will allow for parallelized development.
+\section{Project Components}
+\subsection{Design changes}
+Although the overall structure and linkages of our system diagram have not changed since the beginning of our project, virtually every block was modified by the end of development.
 
-Originally, we were going to use a BlueSMiRF Gold to connect to the WiiMote. However, the Gold only connects via serial, while the WiiMote requires an HID interface. To that end, we have purchased a BlueSMiRF HID that has arrived today. In case this does not work:
-\begin{enumerate} 
-\item[1.] We also have a Raspberry Pi, USB Bluetooth dongle, and an Alamode shield for servo control. 
-\item[2.] We could also buy a USB mini OTG cable to interface the USB dongle with the mbed.
-\end{enumerate}
-To date, we have been able to connect the WiiMote via Bluetooth to a laptop, and we have been able to communicate with the BlueSMiRF Gold via the mbed board. Now with the BlueSMiRF HID in our possesion, we plan to complete the transmission of data from the WiiMote to the mbed via the BlueSMiRF HID.
+\subsubsection{Gimbal}
+Our original design called for traditional servo motors to drive the gimbal's motion, but we decided to change to advanced, serially-controlled servos. These Dynamixel RX-24F motors (see Figure \ref{fig:hw_mk0}) provided several advantages, the primary one being ease of control.
 
-For motor actuation, we will be using an assembly of two Dynamixel RX-24F motors to form a two-axis gimbal assembley (see Figure \ref{fig:hw_mk0}). These are ``smart servos'' which are controlled by sending data via a serial connection. In our application, we will send desired angular positions to the motors via RS-458 (the SparkFun will convert data from the mbed board to an RS-458 signal).
+Unlike traditional servo motors which are commanded to set their position using PWM, our smart servos could be commanded via RS-485 serial link. This provides more timing flexibility in our control logic, since this makes PWM interrupt routines unnecessary. The smart servos also allowed us to set the speed of the movements over the serial link, offloading logic from our main control loop to the motors.
+
+Also, the new servos were daisy-chainable, an impossibility with PWM. This allowed us to use a single serial output, as opposed to multiple, independent PWM outputs, each with their own interrupt routines. This resulted in a subtantial time savings in development, and greater reliability.
+
+A disadvantage was that RS-485 is quite different from serial UART, in that it uses 200 mV differential signaling over two wires and is half-duplex, whereas our TTL UART operates at 3.3V and is full-duplex. We used a breakout board for the SP3485, which accomplishes both level conversion and protocol translation, with the aid of an RTS signal from our system controller.
+
+\subsubsection{Bluetooth}
+Originally, we were going to use a BlueSMiRF Gold to connect to the WiiMote. However, the Gold only connects via serial data endpoints, while the WiiMote requires an HID interface. So, the BlueSMiRF Gold did not work.
+
+To resolve this problem, we purchased a BlueSMiRF HID, which has the same hardware as the BlueSMiRF Gold, but has different factory-flashed firmware for HID capabilities. This also did not work, because the BlueSMiRF HID was designed to operate as an HID slave device, such as a mouse, keyboard or joystick; it could not operate as an HID host, to control such HID devices.
+
+In the end, we used a USB-Bluetooth dongle.
+
+\subsubsection{System controller}
+Although we originally intended to use the ARM mbed FRDM-KL25Z Freedom board, we decided to change platforms to the Raspberry Pi model B.
+
+We did not use the Pi initially because the lab already provided each of our group members with a free, personal ARM mbed processor. This allowed us to work independently, parallelizing development. In comparison, the Pi cost \$35. Also, PWM control requires Linux kernel programming on the Pi, or a separate daughterboard with its own microprocessor, such as the Arduino-compatible Pi Alamode (another \$35). We deemed this too complex and expensive.
+
+However, circumstances changed later in the development. By switching to the serial servos, we eliminated the need for kernel development or a daughterboard. Just like with the ARM mbed, we could now control all the hardware with a single system controller. Also, when we exchanged the BlueSMiRF for the Bluetooth dongle, the easily-installed support for the dongle in Linux gave the Pi a clear advantage over the ARM mbed, which in contrast required compiling and integrating C++ code. The Pi was simpler.
+
+The Pi also offered new capabilities not available on ARM mbed. 
+
+With the Pi, we could change languages from C++ to Python, and we could develop and test directly on the Pi itself. This meant no more waiting for compilation and flashing every time we made a change. It also gave us an interactive Python shell to test out snippets of code prior to integration. 
+
+Next was the ethernet connection on the Pi. Connected to a LAN, multiple members could work simultaneously on the Pi via SSH. Also, with an internet connection, we could use package managers to quickly install and test pre-built third-party modules for new Linux and Python functionality. The internet also gave us tighter integration with GitHub for version tracking and merging our code modifications. The confidence that we could quickly revert our changes allowed rapid progress even as the deadline approached.
 
 \begin{figure}[!t]
 \begin{center}
